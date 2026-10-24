@@ -9,6 +9,7 @@ import { LetterView } from './components/Letter/LetterView';
 import { FairyLights, Butterfly } from './components/VisualAssets';
 import { CuteCatFleet } from './components/CuteCatFleet';
 import { PetalCanvas } from './components/PetalCanvas';
+import { FloatingBalloons } from './components/Balloon';
 import { Navbar } from './components/Navbar';
 import { AdminPanel } from './components/Admin/AdminPanel';
 import { sounds } from './utils/soundEffects';
@@ -159,6 +160,7 @@ export default function App() {
       {/* Layered Magic Petals, Twinkling Stars & Hearts Canvas */}
       <PetalCanvas />
       <FairyLights />
+      <FloatingBalloons />
 
       {/* Butterflies drifting across screen */}
       {Array.from({ length: 4 }).map((_, i) => (
