@@ -237,6 +237,7 @@ export default function App() {
                 onBlow={triggerCandleExtinguished}
                 permissionError={permissionError}
                 soundEnabled={config.soundEnabled}
+                recipientName={config.recipientName}
               />
             </motion.div>
           )}
