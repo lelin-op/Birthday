@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 interface BirthdayCakeProps {
   isBlown: boolean;
   onBlow: () => void;
+  permissionError?: boolean;
 }
 
-export const BirthdayCake: React.FC<BirthdayCakeProps> = ({ isBlown, onBlow }) => {
+export const BirthdayCake: React.FC<BirthdayCakeProps> = ({ isBlown, onBlow, permissionError }) => {
   return (
     <div className="relative flex flex-col items-center">
       <div className="relative w-64 h-64 cursor-pointer" onClick={() => !isBlown && onBlow()}>
@@ -55,13 +56,24 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({ isBlown, onBlow }) =
       </div>
 
       {!isBlown && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-8 text-lg font-medium text-lavender-500 animate-pulse"
-        >
-          🌬️ Blow into the microphone or tap the cake!
-        </motion.p>
+        <div className="flex flex-col items-center">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-8 text-base md:text-lg font-medium text-lavender-500 animate-pulse text-center"
+          >
+            {permissionError ? '✨ Tap the cake to make a wish!' : '🌬️ Blow into the microphone or tap the cake!'}
+          </motion.p>
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={onBlow}
+            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-medium rounded-full shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center gap-2 cursor-pointer"
+          >
+            <span>🎂</span>
+            <span>Make a Wish & Blow Candles</span>
+          </motion.button>
+        </div>
       )}
     </div>
   );

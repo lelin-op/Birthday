@@ -55,8 +55,12 @@ export default function App() {
         )}
 
         {appState === 'CAKE_BLOW' && (
-          <motion.div key="cake" className="z-20">
-            <BirthdayCake isBlown={false} onBlow={() => setAppState('CANDLES_BLOWN')} />
+          <motion.div key="cake" className="z-20 text-center">
+            <BirthdayCake
+              isBlown={false}
+              onBlow={() => setAppState('CANDLES_BLOWN')}
+              permissionError={permissionError}
+            />
           </motion.div>
         )}
 

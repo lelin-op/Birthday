@@ -76,12 +76,17 @@ export const CuteCat: React.FC<{ className?: string; pose?: 'sitting' | 'sleepin
 };
 
 export const Butterfly: React.FC<{ delay?: number }> = ({ delay = 0 }) => {
+  const initialY = (delay * 97 + 130) % 350 + 50;
+  const y1 = (delay * 131 + 210) % 400 + 50;
+  const y2 = (delay * 73 + 80) % 400 + 50;
+  const y3 = (delay * 179 + 320) % 400 + 50;
+
   return (
     <motion.div
-      initial={{ x: -100, y: Math.random() * 400, opacity: 0 }}
+      initial={{ x: -100, y: initialY, opacity: 0 }}
       animate={{
         x: [null, 400, 800, 1300],
-        y: [null, Math.random() * 500, Math.random() * 500, Math.random() * 500],
+        y: [null, y1, y2, y3],
         opacity: [0, 1, 1, 0]
       }}
       transition={{ duration: 15, repeat: Infinity, delay, ease: "linear" }}
