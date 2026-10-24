@@ -2,6 +2,8 @@ export type AppState = 'COUNTDOWN' | 'CAKE_BLOW' | 'CANDLES_BLOWN' | 'LETTER_SHO
 
 export type AppTheme = 'blackPurplePink' | 'roseGold' | 'midnightStar' | 'lavenderDream' | 'candlelight';
 
+export type CakeStyle = 'butterflyPink' | 'royalPurpleTwoTier' | 'grandThreeTier';
+
 export interface AppConfig {
   recipientName: string;
   senderName: string;
@@ -12,6 +14,7 @@ export interface AppConfig {
   photoUrl: string;
   photoCaption: string;
   theme: AppTheme;
+  cakeStyle: CakeStyle;
   soundEnabled: boolean;
 }
 
@@ -30,5 +33,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   photoUrl: "/src/assets/images/polaroid_romantic_couple_1792835016851.jpg",
   photoCaption: "Our happiest moments together ✨",
   theme: 'blackPurplePink',
+  cakeStyle: 'butterflyPink',
   soundEnabled: true,
 };

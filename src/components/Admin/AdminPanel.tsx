@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { AppConfig, AppState, AppTheme } from '../../types';
+import type { AppConfig, AppState, AppTheme, CakeStyle } from '../../types';
 import { DEFAULT_CONFIG } from '../../types';
 import { sounds } from '../../utils/soundEffects';
 import confetti from 'canvas-confetti';
@@ -105,6 +105,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     { id: 'candlelight', name: 'Candlelight Amber', preview: 'from-amber-100 to-orange-50' },
   ];
 
+  const cakeStyles: { id: CakeStyle; name: string; desc: string }[] = [
+    { id: 'butterflyPink', name: '🌸 Butterfly Pink (1-Tier)', desc: 'Single-tier soft pink cake with butterflies & white pearls' },
+    { id: 'royalPurpleTwoTier', name: '💜 Royal Purple (2-Tier)', desc: 'Two-tier purple velvet cake with rosette borders' },
+    { id: 'grandThreeTier', name: '👑 Grand Celebration (3-Tier)', desc: 'Three-tier luxury cake with cascading glaze' },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -118,7 +124,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </h1>
             </div>
             <p className="text-sm text-slate-500 mt-1">
-              Test all celebration stages, edit the love letter, customize memories, and configure preview states.
+              Test all celebration stages, edit the love letter, select cake designs, and configure preview states.
             </p>
           </div>
 
@@ -203,7 +209,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: LETTER CONTENT & RECIPIENT SETTINGS */}
+        {/* SECTION 2: CAKE DESIGN SELECTOR */}
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <h2 className="text-base font-semibold text-slate-900">
+            Cake Architecture Design
+          </h2>
+          <p className="text-xs text-slate-500">
+            Choose between single-tier, two-tier, or three-tier vector cakes.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {cakeStyles.map((c) => {
+              const isSelected = formData.cakeStyle === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setFormData({ ...formData, cakeStyle: c.id })}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-rose-500 bg-rose-50/70 ring-2 ring-rose-500/20'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-sm font-semibold text-slate-800">{c.name}</div>
+                  <div className="text-xs text-slate-500 mt-1 leading-relaxed">{c.desc}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SECTION 3: LETTER CONTENT & RECIPIENT SETTINGS */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
           <h2 className="text-base font-semibold text-slate-900">
             Letter & Personalization Details
@@ -313,7 +349,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 3: COUNTDOWN TARGET & THEME */}
+        {/* SECTION 4: COUNTDOWN TARGET & THEME */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
           <h2 className="text-base font-semibold text-slate-900">
             Countdown Target & Visual Theme

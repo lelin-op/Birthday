@@ -19,14 +19,24 @@ import confetti from 'canvas-confetti';
 const checkIsAdminRoute = (): boolean => {
   if (typeof window === 'undefined') return false;
   const { pathname, hash, search } = window.location;
-  return (
+  const isAdmin = (
     pathname === '/admin' ||
     pathname.startsWith('/admin') ||
-    pathname.endsWith('/admin') ||
     hash === '#/admin' ||
     hash.startsWith('#/admin') ||
     search.includes('admin')
   );
+
+  // Clean up legacy hash /#/admin if present
+  if (isAdmin && hash.includes('admin')) {
+    try {
+      window.history.replaceState({}, '', '/admin');
+    } catch {
+      // ignore
+    }
+  }
+
+  return isAdmin;
 };
 
 export default function App() {
@@ -158,7 +168,7 @@ export default function App() {
       {/* Interactive Cute Cats fleet with hover purring & love reactions */}
       <CuteCatFleet />
 
-      {/* Navigation (Pure wordmark and stage links, no admin button) */}
+      {/* Navigation (Pure wordmark, no admin buttons) */}
       <Navbar
         currentStage={appState}
         onSelectStage={(stage) => setAppState(stage)}
@@ -194,22 +204,6 @@ export default function App() {
 
               {/* Cool 3D Neon Glass Countdown Timer */}
               <CountdownTimer timeLeft={timeLeft} />
-
-              {/* Clean Single Action to Proceed - (No admin button anywhere) */}
-              <div className="mt-6 sm:mt-8 flex flex-col items-center">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    sounds.playChime();
-                    setAppState('CAKE_BLOW');
-                  }}
-                  className="px-8 py-3.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:shadow-[0_0_35px_rgba(244,63,94,0.7)] transition-all text-sm sm:text-base flex items-center gap-2.5 cursor-pointer border border-white/30"
-                >
-                  <span>🎂</span>
-                  <span>Start Birthday Cake Celebration</span>
-                </motion.button>
-              </div>
             </motion.div>
           )}
 
@@ -238,6 +232,7 @@ export default function App() {
                 permissionError={permissionError}
                 soundEnabled={config.soundEnabled}
                 recipientName={config.recipientName}
+                cakeStyle={config.cakeStyle}
               />
             </motion.div>
           )}
