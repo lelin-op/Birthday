@@ -10,9 +10,25 @@ export const PetalCanvas: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let particles: Blossom[] = [];
 
-    class Blossom {
+    // 1. Twinkling Stars in Background
+    interface Star {
+      x: number;
+      y: number;
+      radius: number;
+      alpha: number;
+      speed: number;
+    }
+    const stars: Star[] = Array.from({ length: 50 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      radius: Math.random() * 1.5 + 0.5,
+      alpha: Math.random(),
+      speed: Math.random() * 0.02 + 0.005,
+    }));
+
+    // 2. Drifting Sakura Petals, Neon Hearts, and Golden Fireflies
+    class MagicParticle {
       x: number;
       y: number;
       size: number;
@@ -20,26 +36,38 @@ export const PetalCanvas: React.FC = () => {
       speedY: number;
       rotation: number;
       rotationSpeed: number;
-      hue: number;
       opacity: number;
-      type: 'petal' | 'heart' | 'sparkle';
+      type: 'petal' | 'heart' | 'sparkle' | 'star';
+      color: string;
 
-      constructor() {
+      constructor(initY?: number) {
         this.x = Math.random() * (canvas?.width || window.innerWidth);
-        this.y = Math.random() * -50;
-        this.size = Math.random() * 7 + 6;
-        this.speedX = Math.random() * 1.5 - 0.75;
-        this.speedY = Math.random() * 1.2 + 0.8;
+        this.y = initY !== undefined ? initY : Math.random() * -60;
+        this.size = Math.random() * 8 + 6;
+        this.speedX = Math.random() * 1.6 - 0.8;
+        this.speedY = Math.random() * 1.4 + 0.8;
         this.rotation = Math.random() * 360;
-        this.rotationSpeed = Math.random() * 1.8 - 0.9;
-        this.hue = Math.random() > 0.6 ? 340 : 350; // soft rose / cherry blossom
-        this.opacity = Math.random() * 0.35 + 0.35;
+        this.rotationSpeed = Math.random() * 1.6 - 0.8;
+        this.opacity = Math.random() * 0.5 + 0.4;
+
         const rand = Math.random();
-        this.type = rand > 0.85 ? 'heart' : rand > 0.7 ? 'sparkle' : 'petal';
+        if (rand > 0.82) {
+          this.type = 'heart';
+          this.color = Math.random() > 0.5 ? '#f43f5e' : '#ec4899'; // neon pink
+        } else if (rand > 0.65) {
+          this.type = 'sparkle';
+          this.color = '#fbbf24'; // gold sparkle
+        } else if (rand > 0.5) {
+          this.type = 'star';
+          this.color = '#c084fc'; // purple star
+        } else {
+          this.type = 'petal';
+          this.color = '#fbcfe8'; // soft pink sakura
+        }
       }
 
       update() {
-        this.x += this.speedX + Math.sin(this.y / 45) * 0.8;
+        this.x += this.speedX + Math.sin(this.y / 40) * 0.9;
         this.y += this.speedY;
         this.rotation += this.rotationSpeed;
 
@@ -56,31 +84,49 @@ export const PetalCanvas: React.FC = () => {
         ctx.rotate((this.rotation * Math.PI) / 180);
 
         if (this.type === 'heart') {
-          // Floating tiny love heart
-          ctx.fillStyle = `rgba(244, 114, 182, ${this.opacity * 0.8})`;
+          // Luminous Glowing Neon Heart
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = this.color;
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.opacity;
           ctx.beginPath();
-          const s = this.size * 0.6;
+          const s = this.size * 0.7;
           ctx.moveTo(0, s * 0.3);
           ctx.bezierCurveTo(-s, -s * 0.5, -s * 0.5, -s, 0, -s * 0.3);
           ctx.bezierCurveTo(s * 0.5, -s, s, -s * 0.5, 0, s * 0.3);
           ctx.fill();
-        } else if (this.type === 'sparkle') {
-          // Sparkling starlight speck
-          ctx.fillStyle = `rgba(251, 191, 36, ${this.opacity})`;
+        } else if (this.type === 'sparkle' || this.type === 'star') {
+          // Twinkling Starlight Speck with cross flare
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = this.color;
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.opacity;
           ctx.beginPath();
-          ctx.arc(0, 0, this.size * 0.3, 0, Math.PI * 2);
+          const r = this.size * 0.4;
+          ctx.moveTo(0, -r * 1.5);
+          ctx.lineTo(r * 0.3, -r * 0.3);
+          ctx.lineTo(r * 1.5, 0);
+          ctx.lineTo(r * 0.3, r * 0.3);
+          ctx.lineTo(0, r * 1.5);
+          ctx.lineTo(-r * 0.3, r * 0.3);
+          ctx.lineTo(-r * 1.5, 0);
+          ctx.lineTo(-r * 0.3, -r * 0.3);
+          ctx.closePath();
           ctx.fill();
         } else {
-          // Realistic Sakura Flower Petal
+          // Delicate Sakura Blossom Petal with gradient
           const grad = ctx.createLinearGradient(0, -this.size, 0, this.size);
-          grad.addColorStop(0, `hsla(${this.hue}, 90%, 88%, ${this.opacity})`);
-          grad.addColorStop(1, `hsla(${this.hue}, 95%, 78%, ${this.opacity})`);
+          grad.addColorStop(0, '#fda4af');
+          grad.addColorStop(1, '#f472b6');
 
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = '#f43f5e';
           ctx.fillStyle = grad;
+          ctx.globalAlpha = this.opacity;
           ctx.beginPath();
           ctx.moveTo(0, -this.size);
-          ctx.bezierCurveTo(this.size * 0.8, -this.size * 0.8, this.size * 0.9, this.size * 0.4, 0, this.size);
-          ctx.bezierCurveTo(-this.size * 0.9, this.size * 0.4, -this.size * 0.8, -this.size * 0.8, 0, -this.size);
+          ctx.bezierCurveTo(this.size * 0.85, -this.size * 0.8, this.size * 0.9, this.size * 0.4, 0, this.size);
+          ctx.bezierCurveTo(-this.size * 0.9, this.size * 0.4, -this.size * 0.85, -this.size * 0.8, 0, -this.size);
           ctx.fill();
         }
 
@@ -88,10 +134,12 @@ export const PetalCanvas: React.FC = () => {
       }
     }
 
+    let particles: MagicParticle[] = [];
+
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      particles = Array.from({ length: 35 }, () => new Blossom());
+      particles = Array.from({ length: 45 }, () => new MagicParticle(Math.random() * window.innerHeight));
     };
 
     window.addEventListener('resize', resize);
@@ -99,10 +147,27 @@ export const PetalCanvas: React.FC = () => {
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Twinkling Stars
+      stars.forEach((star) => {
+        star.alpha += star.speed;
+        const currentAlpha = 0.3 + Math.sin(star.alpha) * 0.5;
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, currentAlpha)})`;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 2. Draw Moving Magic Particles
       particles.forEach((p) => {
         p.update();
         p.draw();
       });
+
       animationFrameId = requestAnimationFrame(render);
     };
     render();
@@ -113,5 +178,5 @@ export const PetalCanvas: React.FC = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-80" />;
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
 };

@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const FairyLights: React.FC = () => {
-  const bulbs = Array.from({ length: 12 });
-  const colors = ['#f84b7a', '#974eff', '#fbbf24', '#ff85a5', '#d5b8ff'];
+  const bulbs = Array.from({ length: 14 });
+  const colors = ['#f43f5e', '#a855f7', '#ec4899', '#c084fc', '#fbbf24', '#e879f9', '#38bdf8'];
 
   return (
     <div className="absolute top-0 left-0 w-full h-16 pointer-events-none z-10 overflow-hidden">
@@ -11,8 +11,8 @@ export const FairyLights: React.FC = () => {
         <path
           d="M0,10 Q50,40 100,10 T200,10 T300,10 T400,10 T500,10 T600,10 T700,10 T800,10 T900,10 T1000,10 T1100,10 T1200,10"
           fill="none"
-          stroke="#475569"
-          strokeWidth="1.5"
+          stroke="rgba(244, 114, 182, 0.4)"
+          strokeWidth="1.2"
         />
         {bulbs.map((_, i) => (
           <motion.circle

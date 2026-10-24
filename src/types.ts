@@ -1,6 +1,6 @@
 export type AppState = 'COUNTDOWN' | 'CAKE_BLOW' | 'CANDLES_BLOWN' | 'LETTER_SHOW';
 
-export type AppTheme = 'roseGold' | 'midnightStar' | 'lavenderDream' | 'candlelight';
+export type AppTheme = 'blackPurplePink' | 'roseGold' | 'midnightStar' | 'lavenderDream' | 'candlelight';
 
 export interface AppConfig {
   recipientName: string;
@@ -29,6 +29,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   targetDateISO: "2026-10-26T00:00:00",
   photoUrl: "/src/assets/images/polaroid_romantic_couple_1792835016851.jpg",
   photoCaption: "Our happiest moments together ✨",
-  theme: 'roseGold',
+  theme: 'blackPurplePink',
   soundEnabled: true,
 };

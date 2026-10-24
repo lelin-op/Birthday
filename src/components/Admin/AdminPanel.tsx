@@ -98,6 +98,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   ];
 
   const themes: { id: AppTheme; name: string; preview: string }[] = [
+    { id: 'blackPurplePink', name: 'Black, Purple & Pink (Neon)', preview: 'from-purple-900 via-pink-600 to-black' },
     { id: 'roseGold', name: 'Rose Gold Romance', preview: 'from-rose-100 to-amber-50' },
     { id: 'midnightStar', name: 'Midnight Starlight', preview: 'from-slate-900 to-indigo-950' },
     { id: 'lavenderDream', name: 'Lavender Twilight', preview: 'from-purple-100 to-pink-50' },

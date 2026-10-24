@@ -78,10 +78,10 @@ export default function App() {
     setTimeout(() => {
       sounds.playFanfare();
       confetti({
-        particleCount: 160,
+        particleCount: 170,
         spread: 90,
         origin: { y: 0.55 },
-        colors: ['#f43f5e', '#ec4899', '#fbbf24', '#c084fc', '#38bdf8'],
+        colors: ['#f43f5e', '#ec4899', '#a855f7', '#fbbf24', '#38bdf8'],
       });
       setAppState('CANDLES_BLOWN');
     }, 400);
@@ -102,8 +102,12 @@ export default function App() {
     }, 450);
   };
 
+  const isDark = config.theme === 'blackPurplePink' || config.theme === 'midnightStar';
+
   const getThemeBackground = () => {
     switch (config.theme) {
+      case 'blackPurplePink':
+        return 'bg-[#090514] text-white';
       case 'midnightStar':
         return 'bg-gradient-to-b from-[#0b0f19] via-[#1e1b4b] to-[#172554] text-slate-100';
       case 'lavenderDream':
@@ -116,7 +120,7 @@ export default function App() {
     }
   };
 
-  // 1. DEDICATED /admin PAGE VIEW
+  // 1. DEDICATED /admin PAGE VIEW (Accessed via URL /admin)
   if (isAdminPage) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -134,9 +138,15 @@ export default function App() {
     );
   }
 
-  // 2. CELEBRATION APP VIEW (/)
+  // 2. CELEBRATION APP VIEW (/) - Completely clean without any visible admin buttons
   return (
-    <div className={`min-h-screen relative overflow-x-hidden selection:bg-pink-200 selection:text-pink-900 transition-colors duration-500 ${getThemeBackground()}`}>
+    <div className={`min-h-screen relative overflow-x-hidden selection:bg-pink-500 selection:text-white transition-colors duration-500 ${getThemeBackground()}`}>
+      {/* Ambient Radial Mesh for Black, Purple & Pink Glow */}
+      {config.theme === 'blackPurplePink' && (
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-15%,rgba(168,85,247,0.28),rgba(244,63,94,0.18),rgba(9,5,20,1))]" />
+      )}
+
+      {/* Layered Magic Petals, Twinkling Stars & Hearts Canvas */}
       <PetalCanvas />
       <FairyLights />
 
@@ -148,13 +158,12 @@ export default function App() {
       {/* Interactive Cute Cats fleet with hover purring & love reactions */}
       <CuteCatFleet />
 
-      {/* Navigation */}
+      {/* Navigation (Pure wordmark and stage links, no admin button) */}
       <Navbar
         currentStage={appState}
         onSelectStage={(stage) => setAppState(stage)}
-        isAdminOpen={false}
-        onToggleAdmin={() => navigateTo('/admin')}
         recipientName={config.recipientName}
+        isDark={isDark}
       />
 
       {/* Main Experience Viewport */}
@@ -171,23 +180,23 @@ export default function App() {
               className="text-center w-full max-w-xl mx-auto flex flex-col items-center"
             >
               {/* Header Title */}
-              <div className="mb-6 sm:mb-8">
-                <span className="text-xs font-semibold uppercase tracking-widest text-rose-500 mb-2 inline-block">
+              <div className="mb-4 sm:mb-6">
+                <span className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-2 inline-block drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
                   A Special Celebration For You
                 </span>
-                <h1 className="text-4xl sm:text-6xl font-script font-bold text-slate-800 tracking-wide drop-shadow-xs">
+                <h1 className={`text-4xl sm:text-6xl font-script font-bold tracking-wide ${isDark ? 'text-white drop-shadow-[0_0_25px_rgba(236,72,153,0.5)]' : 'text-slate-800'}`}>
                   Birthday Countdown
                 </h1>
-                <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+                <p className={`mt-2 text-sm sm:text-base max-w-md mx-auto ${isDark ? 'text-purple-200/80' : 'text-slate-600'}`}>
                   Counting every precious second until your special day arrives!
                 </p>
               </div>
 
-              {/* 3D Glass Countdown Cards */}
+              {/* Cool 3D Neon Glass Countdown Timer */}
               <CountdownTimer timeLeft={timeLeft} />
 
-              {/* Proceed to Birthday Cake Actions */}
-              <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-4">
+              {/* Clean Single Action to Proceed - (No admin button anywhere) */}
+              <div className="mt-6 sm:mt-8 flex flex-col items-center">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -195,18 +204,11 @@ export default function App() {
                     sounds.playChime();
                     setAppState('CAKE_BLOW');
                   }}
-                  className="px-8 py-3.5 bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold rounded-2xl shadow-xl shadow-rose-500/25 transition-all text-sm sm:text-base flex items-center gap-2.5 cursor-pointer border border-white/40"
+                  className="px-8 py-3.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:shadow-[0_0_35px_rgba(244,63,94,0.7)] transition-all text-sm sm:text-base flex items-center gap-2.5 cursor-pointer border border-white/30"
                 >
                   <span>🎂</span>
                   <span>Start Birthday Cake Celebration</span>
                 </motion.button>
-
-                <button
-                  onClick={() => navigateTo('/admin')}
-                  className="px-5 py-3 bg-white/80 hover:bg-white text-slate-700 text-xs font-semibold rounded-2xl border border-slate-200/90 shadow-xs transition-colors cursor-pointer"
-                >
-                  ⚙️ Customize in /admin
-                </button>
               </div>
             </motion.div>
           )}
@@ -222,10 +224,10 @@ export default function App() {
               className="w-full flex flex-col items-center"
             >
               <div className="text-center mb-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-rose-500 mb-1 inline-block">
+                <span className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-1 inline-block drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
                   Happy Birthday, {config.recipientName}!
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-script font-bold text-slate-800">
+                <h2 className={`text-3xl sm:text-5xl font-script font-bold ${isDark ? 'text-white drop-shadow-[0_0_20px_rgba(236,72,153,0.5)]' : 'text-slate-800'}`}>
                   Make a Wish & Blow the Candles
                 </h2>
               </div>
@@ -250,10 +252,10 @@ export default function App() {
               className="w-full flex flex-col items-center"
             >
               <div className="text-center mb-6">
-                <span className="text-xs font-semibold uppercase tracking-widest text-rose-500 mb-1 inline-block">
+                <span className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-1 inline-block drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
                   A Special Delivery
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-script font-bold text-slate-800">
+                <h2 className={`text-3xl sm:text-5xl font-script font-bold ${isDark ? 'text-white drop-shadow-[0_0_20px_rgba(236,72,153,0.5)]' : 'text-slate-800'}`}>
                   Your Love Letter Awaits
                 </h2>
               </div>
