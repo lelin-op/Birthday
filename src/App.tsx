@@ -24,15 +24,23 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 const checkIsAdminRoute = (): boolean => {
   if (typeof window === 'undefined') return false;
   const { pathname, hash, search } = window.location;
+  const normPath = pathname.toLowerCase();
+  const normHash = hash.toLowerCase();
+  const normSearch = search.toLowerCase();
+
   const isAdmin = (
-    pathname === '/admin' ||
-    pathname.startsWith('/admin') ||
-    hash === '#/admin' ||
-    hash.startsWith('#/admin') ||
-    search.includes('admin')
+    normPath === '/admin' ||
+    normPath === '/admin/' ||
+    normPath.startsWith('/admin') ||
+    normPath.endsWith('/admin') ||
+    normHash === '#/admin' ||
+    normHash === '#admin' ||
+    normHash.startsWith('#/admin') ||
+    normSearch.includes('admin')
   );
 
-  if (isAdmin && hash.includes('admin')) {
+  // If accessed via /#/admin or ?admin, replace URL in address bar with pure clean /admin path
+  if (isAdmin && (hash || search)) {
     try {
       window.history.replaceState({}, '', '/admin');
     } catch {
