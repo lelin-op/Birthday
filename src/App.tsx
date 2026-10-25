@@ -84,6 +84,23 @@ export default function App() {
 
   const timeLeft = useCountdown(config.targetDateISO);
 
+  // Automatically transition to CAKE_BLOW stage when countdown ends
+  useEffect(() => {
+    if (timeLeft.isCompleted && appState === 'COUNTDOWN') {
+      const timer = setTimeout(() => {
+        sounds.playFanfare();
+        confetti({
+          particleCount: 140,
+          spread: 90,
+          origin: { y: 0.55 },
+          colors: ['#f43f5e', '#ec4899', '#a855f7', '#fbbf24', '#38bdf8'],
+        });
+        setAppState('CAKE_BLOW');
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [timeLeft.isCompleted, appState]);
+
   const triggerCandleExtinguished = () => {
     sounds.playBlowing();
     setTimeout(() => {
@@ -205,7 +222,7 @@ export default function App() {
               </div>
 
               {/* Cool 3D Neon Glass Countdown Timer */}
-              <CountdownTimer timeLeft={timeLeft} />
+              <CountdownTimer timeLeft={timeLeft} onProceed={() => setAppState('CAKE_BLOW')} />
             </motion.div>
           )}
 

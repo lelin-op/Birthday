@@ -6,7 +6,7 @@ export const PetalCanvas: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animationFrameId: number;
@@ -19,7 +19,7 @@ export const PetalCanvas: React.FC = () => {
       alpha: number;
       speed: number;
     }
-    const stars: Star[] = Array.from({ length: 50 }, () => ({
+    const stars: Star[] = Array.from({ length: 40 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       radius: Math.random() * 1.5 + 0.5,
@@ -43,11 +43,11 @@ export const PetalCanvas: React.FC = () => {
       constructor(initY?: number) {
         this.x = Math.random() * (canvas?.width || window.innerWidth);
         this.y = initY !== undefined ? initY : Math.random() * -60;
-        this.size = Math.random() * 8 + 6;
-        this.speedX = Math.random() * 1.6 - 0.8;
-        this.speedY = Math.random() * 1.4 + 0.8;
+        this.size = Math.random() * 7 + 5;
+        this.speedX = Math.random() * 1.2 - 0.6;
+        this.speedY = Math.random() * 1.2 + 0.6;
         this.rotation = Math.random() * 360;
-        this.rotationSpeed = Math.random() * 1.6 - 0.8;
+        this.rotationSpeed = Math.random() * 1.2 - 0.6;
         this.opacity = Math.random() * 0.5 + 0.4;
 
         const rand = Math.random();
@@ -67,7 +67,7 @@ export const PetalCanvas: React.FC = () => {
       }
 
       update() {
-        this.x += this.speedX + Math.sin(this.y / 40) * 0.9;
+        this.x += this.speedX + Math.sin(this.y / 45) * 0.8;
         this.y += this.speedY;
         this.rotation += this.rotationSpeed;
 
@@ -84,9 +84,7 @@ export const PetalCanvas: React.FC = () => {
         ctx.rotate((this.rotation * Math.PI) / 180);
 
         if (this.type === 'heart') {
-          // Luminous Glowing Neon Heart
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = this.color;
+          // Fast, crisp Neon Heart
           ctx.fillStyle = this.color;
           ctx.globalAlpha = this.opacity;
           ctx.beginPath();
@@ -97,8 +95,6 @@ export const PetalCanvas: React.FC = () => {
           ctx.fill();
         } else if (this.type === 'sparkle' || this.type === 'star') {
           // Twinkling Starlight Speck with cross flare
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = this.color;
           ctx.fillStyle = this.color;
           ctx.globalAlpha = this.opacity;
           ctx.beginPath();
@@ -114,14 +110,8 @@ export const PetalCanvas: React.FC = () => {
           ctx.closePath();
           ctx.fill();
         } else {
-          // Delicate Sakura Blossom Petal with gradient
-          const grad = ctx.createLinearGradient(0, -this.size, 0, this.size);
-          grad.addColorStop(0, '#fda4af');
-          grad.addColorStop(1, '#f472b6');
-
-          ctx.shadowBlur = 6;
-          ctx.shadowColor = '#f43f5e';
-          ctx.fillStyle = grad;
+          // Delicate Sakura Blossom Petal
+          ctx.fillStyle = '#f472b6';
           ctx.globalAlpha = this.opacity;
           ctx.beginPath();
           ctx.moveTo(0, -this.size);
@@ -139,7 +129,7 @@ export const PetalCanvas: React.FC = () => {
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      particles = Array.from({ length: 45 }, () => new MagicParticle(Math.random() * window.innerHeight));
+      particles = Array.from({ length: 35 }, () => new MagicParticle(Math.random() * window.innerHeight));
     };
 
     window.addEventListener('resize', resize);
@@ -149,17 +139,14 @@ export const PetalCanvas: React.FC = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // 1. Draw Twinkling Stars
+      ctx.fillStyle = '#ffffff';
       stars.forEach((star) => {
         star.alpha += star.speed;
         const currentAlpha = 0.3 + Math.sin(star.alpha) * 0.5;
-        ctx.save();
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, currentAlpha)})`;
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = '#ffffff';
+        ctx.globalAlpha = Math.max(0.1, currentAlpha);
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
       });
 
       // 2. Draw Moving Magic Particles
@@ -178,5 +165,5 @@ export const PetalCanvas: React.FC = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 will-change-transform" />;
 };

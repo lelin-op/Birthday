@@ -90,7 +90,7 @@ export const Balloon: React.FC<BalloonProps> = ({
 
   return (
     <motion.div
-      className="fixed pointer-events-auto cursor-pointer"
+      className="fixed pointer-events-auto cursor-pointer will-change-transform"
       style={{
         left,
         zIndex,
@@ -119,13 +119,13 @@ export const Balloon: React.FC<BalloonProps> = ({
     >
       <div
         style={{ transform: `scale(${scale})`, transformOrigin: 'bottom center' }}
-        className="relative group"
+        className="relative group transform-gpu"
       >
         <svg
           width="90"
           height="160"
           viewBox="0 0 90 160"
-          className="filter drop-shadow-md transition-filter duration-300 group-hover:drop-shadow-[0_10px_20px_rgba(244,63,94,0.4)]"
+          className="transition-transform duration-300"
         >
           <defs>
             <radialGradient id={gradientId} cx="35%" cy="30%" r="65%">

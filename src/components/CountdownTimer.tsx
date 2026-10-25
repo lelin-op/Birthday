@@ -89,47 +89,73 @@ interface CountdownTimerProps {
     hours: number;
     minutes: number;
     seconds: number;
+    isCompleted?: boolean;
   };
+  onProceed?: () => void;
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ timeLeft }) => {
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ timeLeft, onProceed }) => {
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-4 my-6 select-none">
-      <CoolTimeCard value={timeLeft.days} label="Days" maxUnit={365} />
+    <div className="flex flex-col items-center">
+      <div className="flex items-center justify-center gap-2 sm:gap-4 my-6 select-none">
+        <CoolTimeCard value={timeLeft.days} label="Days" maxUnit={365} />
 
-      {/* Pulsing Neon Colons */}
-      <motion.div
-        animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-        className="flex flex-col gap-2 -mt-7 sm:-mt-9 text-pink-400 font-bold text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
-      >
-        <span>•</span>
-        <span>•</span>
-      </motion.div>
+        {/* Pulsing Neon Colons */}
+        <motion.div
+          animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+          className="flex flex-col gap-2 -mt-7 sm:-mt-9 text-pink-400 font-bold text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
+        >
+          <span>•</span>
+          <span>•</span>
+        </motion.div>
 
-      <CoolTimeCard value={timeLeft.hours} label="Hours" maxUnit={24} />
+        <CoolTimeCard value={timeLeft.hours} label="Hours" maxUnit={24} />
 
-      <motion.div
-        animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
-        className="flex flex-col gap-2 -mt-7 sm:-mt-9 text-pink-400 font-bold text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
-      >
-        <span>•</span>
-        <span>•</span>
-      </motion.div>
+        <motion.div
+          animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+          className="flex flex-col gap-2 -mt-7 sm:-mt-9 text-pink-400 font-bold text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
+        >
+          <span>•</span>
+          <span>•</span>
+        </motion.div>
 
-      <CoolTimeCard value={timeLeft.minutes} label="Mins" maxUnit={60} />
+        <CoolTimeCard value={timeLeft.minutes} label="Mins" maxUnit={60} />
 
-      <motion.div
-        animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-        className="flex flex-col gap-2 -mt-7 sm:-mt-9 text-pink-400 font-bold text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
-      >
-        <span>•</span>
-        <span>•</span>
-      </motion.div>
+        <motion.div
+          animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+          className="flex flex-col gap-2 -mt-7 sm:-mt-9 text-pink-400 font-bold text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
+        >
+          <span>•</span>
+          <span>•</span>
+        </motion.div>
 
-      <CoolTimeCard value={timeLeft.seconds} label="Secs" maxUnit={60} />
+        <CoolTimeCard value={timeLeft.seconds} label="Secs" maxUnit={60} />
+      </div>
+
+      {timeLeft.isCompleted && (
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="mt-4 flex flex-col items-center"
+        >
+          <div className="px-5 py-2.5 bg-pink-500/20 backdrop-blur-md border border-pink-400/40 rounded-full text-pink-200 text-sm font-semibold flex items-center gap-2 shadow-[0_0_20px_rgba(244,63,94,0.3)] animate-pulse">
+            <span className="text-base">🎉</span>
+            <span>The countdown is complete! Entering cake celebration...</span>
+          </div>
+
+          {onProceed && (
+            <button
+              onClick={onProceed}
+              className="mt-3 text-xs text-pink-300 hover:text-white underline font-semibold transition-colors cursor-pointer"
+            >
+              Click here if not redirected automatically
+            </button>
+          )}
+        </motion.div>
+      )}
     </div>
   );
 };
