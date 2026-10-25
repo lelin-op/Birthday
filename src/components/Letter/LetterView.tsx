@@ -24,6 +24,10 @@ export const LetterView: React.FC<LetterViewProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    setImageError(false);
+  }, [config.photoUrl]);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -97,7 +101,7 @@ export const LetterView: React.FC<LetterViewProps> = ({
 
               {/* Photo */}
               <div className="w-full aspect-square bg-slate-100 rounded-sm overflow-hidden relative shadow-inner">
-                {!imageError ? (
+                {config.photoUrl && !imageError ? (
                   <img
                     src={config.photoUrl}
                     alt="Romantic memory together"

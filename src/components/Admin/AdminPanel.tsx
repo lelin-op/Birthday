@@ -23,17 +23,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onSetState,
   onClose,
 }) => {
-  const [formData, setFormData] = useState<AppConfig>({ ...config });
+  const [formData, setFormData] = useState<AppConfig>(() => ({ ...config }));
   const [newMemory, setNewMemory] = useState('');
   const [saveToast, setSaveToast] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPlayingMusicPreview, setIsPlayingMusicPreview] = useState(bgMusic.getIsPlaying());
-
-  React.useEffect(() => {
-    if (!isSaving) {
-      setFormData(config);
-    }
-  }, [config, isSaving]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -731,13 +725,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </label>
               <input
                 type="datetime-local"
-                value={formData.targetDateISO ? formData.targetDateISO.slice(0, 16) : ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    targetDateISO: new Date(e.target.value).toISOString(),
-                  })
+                value={
+                  formData.targetDateISO && !isNaN(new Date(formData.targetDateISO).getTime())
+                    ? new Date(formData.targetDateISO).toISOString().slice(0, 16)
+                    : ''
                 }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val) return;
+                  const parsed = new Date(val);
+                  if (!isNaN(parsed.getTime())) {
+                    setFormData({
+                      ...formData,
+                      targetDateISO: parsed.toISOString(),
+                    });
+                  }
+                }}
                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
               />
               <p className="text-[11px] text-slate-400 mt-1">

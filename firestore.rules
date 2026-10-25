@@ -7,21 +7,26 @@ service cloud.firestore {
     }
 
     function isValidAppConfig(data) {
-      return data.recipientName is string && data.recipientName.size() <= 100 &&
-        data.letterTitle is string && data.letterTitle.size() <= 200 &&
-        data.letterBody is string && data.letterBody.size() <= 5000 &&
+      return data.recipientName is string && data.recipientName.size() <= 200 &&
+        data.letterTitle is string && data.letterTitle.size() <= 300 &&
+        data.letterBody is string && data.letterBody.size() <= 10000 &&
         data.targetDateISO is string && data.targetDateISO.size() <= 100 &&
         data.theme in ['roseGold', 'blackPurplePink', 'midnightStar', 'lavenderDream', 'candlelight'] &&
-        data.cakeStyle in ['butterflyPink', 'royalPurpleTwoTier', 'grandThreeTier'] &&
+        data.cakeStyle in [
+          'butterflyPink', 'royalPurpleTwoTier', 'grandThreeTier', 'goldenLuxury',
+          'strawberryVelvet', 'midnightGalaxy', 'matchaBlossom', 'chocolateFudge',
+          'pastelRainbow', 'oceanBreeze', 'vintageCoquette', 'chocolatierGold', 'fairyGarden'
+        ] &&
         data.soundEnabled is bool &&
         data.musicEnabled is bool &&
         (data.musicVolume is number || data.musicVolume is int) &&
-        data.musicTrack in ['lofiBirthday', 'romanticPiano', 'acousticAura'] &&
+        data.musicTrack in ['lofiBirthday', 'romanticPiano', 'acousticAura', 'youtube'] &&
         data.memories is list &&
-        (!('senderName' in data) || (data.senderName is string && data.senderName.size() <= 100)) &&
-        (!('signatureName' in data) || (data.signatureName is string && data.signatureName.size() <= 100)) &&
-        (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500)) &&
-        (!('photoCaption' in data) || (data.photoCaption is string && data.photoCaption.size() <= 200)) &&
+        (!('senderName' in data) || (data.senderName is string && data.senderName.size() <= 200)) &&
+        (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500000)) &&
+        (!('photoCaption' in data) || (data.photoCaption is string && data.photoCaption.size() <= 300)) &&
+        (!('youtubeUrl' in data) || (data.youtubeUrl is string && data.youtubeUrl.size() <= 2000)) &&
+        (!('musicLoop' in data) || (data.musicLoop is bool)) &&
         (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100));
     }
 
@@ -36,4 +41,3 @@ service cloud.firestore {
     }
   }
 }
-
