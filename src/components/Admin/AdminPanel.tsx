@@ -28,6 +28,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isPlayingMusicPreview, setIsPlayingMusicPreview] = useState(bgMusic.getIsPlaying());
 
+  React.useEffect(() => {
+    if (!isSaving) {
+      setFormData(config);
+    }
+  }, [config, isSaving]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {

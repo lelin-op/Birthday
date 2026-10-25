@@ -152,9 +152,12 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
     }
   }, [onBlow, stopDetection]);
 
-  // Global click listener to resume AudioContext if suspended
+  // Global click & touch listener to request mic and resume AudioContext if suspended
   useEffect(() => {
     const handleGesture = () => {
+      if (!isListening && enabled && !permissionError) {
+        startDetection();
+      }
       if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume().catch(() => {});
       }
@@ -166,7 +169,7 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
       window.removeEventListener('click', handleGesture);
       window.removeEventListener('touchstart', handleGesture);
     };
-  }, []);
+  }, [enabled, isListening, permissionError, startDetection]);
 
   useEffect(() => {
     if (enabled) {

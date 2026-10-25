@@ -160,12 +160,12 @@ export default function App() {
     }, 400);
   };
 
-  // Microphone blow detection
+  // Microphone blow detection requested immediately upon entering the website
   const { permissionError, isListening, micVolume, enableMic } = useBlowDetection(() => {
     if (appState === 'CAKE_BLOW') {
       triggerCandleExtinguished();
     }
-  }, appState === 'CAKE_BLOW');
+  }, true);
 
   const handleOpenEnvelope = () => {
     sounds.playEnvelopeOpen();
