@@ -23,6 +23,12 @@
           "enum": ["butterflyPink", "royalPurpleTwoTier", "grandThreeTier"]
         },
         "soundEnabled": { "type": "boolean" },
+        "musicEnabled": { "type": "boolean" },
+        "musicVolume": { "type": "number" },
+        "musicTrack": {
+          "type": "string",
+          "enum": ["lofiBirthday", "romanticPiano", "acousticAura"]
+        },
         "updatedAt": { "type": "string" }
       },
       "required": ["recipientName", "targetDateISO", "theme", "cakeStyle", "letterTitle", "letterBody", "soundEnabled"]

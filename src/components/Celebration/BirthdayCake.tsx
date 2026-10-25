@@ -18,10 +18,10 @@ interface BirthdayCakeProps {
 export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
   isBlown,
   onBlow,
-  permissionError = false,
-  isListening = false,
-  micVolume = 0,
-  enableMic,
+  permissionError: _permissionError = false,
+  isListening: _isListening = false,
+  micVolume: _micVolume = 0,
+  enableMic: _enableMic,
   recipientName = 'My Love',
   cakeStyle = 'butterflyPink',
 }) => {
@@ -79,37 +79,6 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute -top-4 w-96 h-80 rounded-full pointer-events-none blur-3xl bg-radial from-pink-400/50 via-purple-400/25 to-transparent z-0"
         />
-      )}
-
-      {/* Mic Status & Wind Pulse Meter Bar */}
-      {!allCandlesExtinguished && (
-        <div className="mb-2 z-20 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-pink-500/30 text-xs text-pink-200 shadow-md">
-          <span className="relative flex h-2.5 w-2.5">
-            {isListening ? (
-              <>
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-              </>
-            ) : (
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
-            )}
-          </span>
-          <span className="font-medium">
-            {isListening
-              ? 'Mic active: Blow into mic now!'
-              : permissionError
-              ? 'Mic disabled: Tap candles below to blow'
-              : 'Click mic button or blow into mic'}
-          </span>
-          {isListening && micVolume > 0 && (
-            <div className="flex items-center gap-0.5 ml-1">
-              <div
-                className="h-2 bg-gradient-to-r from-pink-400 to-emerald-400 rounded-full transition-all duration-75"
-                style={{ width: `${Math.min(45, Math.max(6, micVolume * 0.45))}px` }}
-              />
-            </div>
-          )}
-        </div>
       )}
 
       {/* VECTOR CAKE DISPLAY */}
@@ -401,32 +370,17 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
         </svg>
       </motion.div>
 
-      {/* Interactive Controls & Status Feedback */}
-      <div className="mt-3 flex flex-col items-center gap-3 z-30">
-        <div className="text-center">
-          <p className="text-base sm:text-lg font-medium text-slate-100 tracking-tight drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
-            {!allCandlesExtinguished ? (
-              <span>
-                {permissionError
-                  ? '✨ Tap the candles or cake to blow them out!'
-                  : '🌬️ Blow into your mic or tap candles to make a wish!'}
-              </span>
-            ) : (
-              <span className="text-pink-400 font-script text-2xl sm:text-3xl font-bold drop-shadow-[0_0_15px_rgba(244,63,94,0.8)]">
-                Your birthday wish is set in the stars! ✨
-              </span>
-            )}
-          </p>
-          {!allCandlesExtinguished && (
-            <div className="mt-1 flex items-center justify-center gap-2 text-xs text-purple-200/70">
-              <span>{blownCandles.filter((b) => !b).length} of 3 candles glowing</span>
-              <span aria-hidden="true">·</span>
-              <span>Tap each candle or blow all at once</span>
-            </div>
-          )}
-        </div>
+      {/* Interactive Controls */}
+      <div className="mt-4 flex flex-col items-center gap-2.5 z-30">
+        {allCandlesExtinguished && (
+          <div className="text-center mb-1">
+            <p className="text-pink-400 font-script text-2xl sm:text-3xl font-bold drop-shadow-[0_0_15px_rgba(244,63,94,0.8)]">
+              Your birthday wish is set in the stars! ✨
+            </p>
+          </div>
+        )}
 
-        {/* Primary Action Buttons */}
+        {/* Primary Action Button */}
         {!allCandlesExtinguished ? (
           <div className="flex flex-wrap items-center justify-center gap-2.5">
             <motion.button
@@ -436,20 +390,8 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
               className="px-6 py-2.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-[0_0_25px_rgba(244,63,94,0.5)] transition-all text-sm sm:text-base flex items-center gap-2 cursor-pointer border border-white/30"
             >
               <span>🎂</span>
-              <span>Make a Wish & Blow All Candles</span>
+              <span>Make a Wish</span>
             </motion.button>
-
-            {enableMic && !isListening && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => enableMic()}
-                className="px-4 py-2.5 bg-slate-800/80 hover:bg-slate-800 text-pink-300 font-semibold rounded-2xl shadow-md transition-all text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer border border-pink-500/30"
-              >
-                <span>🎤</span>
-                <span>Enable Mic Blow</span>
-              </motion.button>
-            )}
           </div>
         ) : (
           <motion.button

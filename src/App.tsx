@@ -13,6 +13,7 @@ import { FloatingBalloons } from './components/Balloon';
 import { Navbar } from './components/Navbar';
 import { AdminPanel } from './components/Admin/AdminPanel';
 import { sounds } from './utils/soundEffects';
+import { bgMusic } from './utils/backgroundMusic';
 import type { AppState, AppConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
 import confetti from 'canvas-confetti';
@@ -30,7 +31,6 @@ const checkIsAdminRoute = (): boolean => {
     search.includes('admin')
   );
 
-  // Clean up legacy hash /#/admin if present
   if (isAdmin && hash.includes('admin')) {
     try {
       window.history.replaceState({}, '', '/admin');
@@ -46,6 +46,7 @@ export default function App() {
   const [isAdminPage, setIsAdminPage] = useState<boolean>(checkIsAdminRoute);
   const [appState, setAppState] = useState<AppState>('COUNTDOWN');
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [isMusicActive, setIsMusicActive] = useState(false);
 
   // Real-time Firestore sync across all devices
   useEffect(() => {
@@ -58,7 +59,6 @@ export default function App() {
           const data = snapshot.data() as AppConfig;
           setConfig((prev) => ({ ...prev, ...data }));
         } else {
-          // Initialize default cloud document if missing
           setDoc(doc(db, 'settings', 'app_config'), DEFAULT_CONFIG).catch((err) => {
             console.warn('Initial cloud config seed warning:', err);
           });
@@ -72,7 +72,36 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // URL Navigation helper: updates URL in address bar and component state
+  // Sync background music engine parameters when config changes
+  useEffect(() => {
+    if (config.musicEnabled) {
+      bgMusic.setTrack(config.musicTrack);
+      bgMusic.setVolume(config.musicVolume);
+    } else {
+      bgMusic.stop();
+      setIsMusicActive(false);
+    }
+  }, [config.musicEnabled, config.musicTrack, config.musicVolume]);
+
+  // Auto-play background music on first user gesture (click/touch)
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (config.musicEnabled && !bgMusic.getIsPlaying()) {
+        bgMusic.start(config.musicTrack, config.musicVolume);
+        setIsMusicActive(true);
+      }
+    };
+
+    window.addEventListener('click', handleUserInteraction, { once: false });
+    window.addEventListener('touchstart', handleUserInteraction, { once: false });
+
+    return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [config.musicEnabled, config.musicTrack, config.musicVolume]);
+
+  // URL Navigation helper
   const navigateTo = (path: '/admin' | '/') => {
     if (typeof window !== 'undefined') {
       try {
@@ -164,7 +193,17 @@ export default function App() {
     }
   };
 
-  // 1. DEDICATED /admin PAGE VIEW (Accessed via URL /admin)
+  const toggleMusic = () => {
+    if (bgMusic.getIsPlaying()) {
+      bgMusic.stop();
+      setIsMusicActive(false);
+    } else {
+      bgMusic.start(config.musicTrack, config.musicVolume);
+      setIsMusicActive(true);
+    }
+  };
+
+  // 1. DEDICATED /admin PAGE VIEW
   if (isAdminPage) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -182,34 +221,53 @@ export default function App() {
     );
   }
 
-  // 2. CELEBRATION APP VIEW (/) - Completely clean without any visible admin buttons
+  // 2. CELEBRATION APP VIEW (/)
   return (
     <div className={`min-h-screen relative overflow-x-hidden selection:bg-pink-500 selection:text-white transition-colors duration-500 ${getThemeBackground()}`}>
-      {/* Ambient Radial Mesh for Black, Purple & Pink Glow */}
+      {/* Ambient Radial Mesh */}
       {config.theme === 'blackPurplePink' && (
         <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-15%,rgba(168,85,247,0.28),rgba(244,63,94,0.18),rgba(9,5,20,1))]" />
       )}
 
-      {/* Layered Magic Petals, Twinkling Stars & Hearts Canvas */}
+      {/* Layered Visual Elements */}
       <PetalCanvas />
       <FairyLights />
       <FloatingBalloons />
 
-      {/* Butterflies drifting across screen */}
+      {/* Butterflies */}
       {Array.from({ length: 4 }).map((_, i) => (
         <Butterfly key={i} delay={i * 3.5} />
       ))}
 
-      {/* Interactive Cute Cats fleet with hover purring & love reactions */}
+      {/* Cute Cats Fleet */}
       <CuteCatFleet />
 
-      {/* Navigation (Pure wordmark, no admin buttons) */}
+      {/* Navigation */}
       <Navbar
         currentStage={appState}
         onSelectStage={(stage) => setAppState(stage)}
         recipientName={config.recipientName}
         isDark={isDark}
       />
+
+      {/* Floating Background Music Quick Toggle Button */}
+      {config.musicEnabled && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={toggleMusic}
+          className={`fixed bottom-5 right-5 z-40 p-3 rounded-full shadow-lg border backdrop-blur-md transition-all cursor-pointer flex items-center justify-center ${
+            isMusicActive
+              ? 'bg-pink-500/90 text-white border-pink-300 shadow-[0_0_15px_rgba(244,63,94,0.5)]'
+              : 'bg-slate-900/80 text-slate-300 border-white/20'
+          }`}
+          title={isMusicActive ? 'Mute background music' : 'Play background music'}
+        >
+          <span className="text-lg">{isMusicActive ? '🎵' : '🔇'}</span>
+        </motion.button>
+      )}
 
       {/* Main Experience Viewport */}
       <main className="relative z-20 max-w-5xl mx-auto px-4 py-4 sm:py-8 min-h-[calc(100vh-90px)] flex flex-col items-center justify-center">
@@ -224,7 +282,6 @@ export default function App() {
               transition={{ duration: 0.5 }}
               className="text-center w-full max-w-xl mx-auto flex flex-col items-center"
             >
-              {/* Header Title */}
               <div className="mb-4 sm:mb-6">
                 <span className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-2 inline-block drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
                   A Special Celebration For You
@@ -237,7 +294,6 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Cool 3D Neon Glass Countdown Timer */}
               <CountdownTimer timeLeft={timeLeft} onProceed={() => setAppState('CAKE_BLOW')} />
             </motion.div>
           )}
@@ -257,7 +313,7 @@ export default function App() {
                   Happy Birthday, {config.recipientName}!
                 </span>
                 <h2 className={`text-3xl sm:text-5xl font-script font-bold ${isDark ? 'text-white drop-shadow-[0_0_20px_rgba(236,72,153,0.5)]' : 'text-slate-800'}`}>
-                  Make a Wish & Blow the Candles
+                  Make a Special Wish
                 </h2>
               </div>
 

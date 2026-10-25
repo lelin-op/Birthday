@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import type { AppConfig, AppState, AppTheme, CakeStyle } from '../../types';
+import type { AppConfig, AppState, AppTheme, CakeStyle, MusicTrack } from '../../types';
 import { DEFAULT_CONFIG } from '../../types';
 import { sounds } from '../../utils/soundEffects';
+import { bgMusic } from '../../utils/backgroundMusic';
 import confetti from 'canvas-confetti';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -25,6 +26,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newMemory, setNewMemory] = useState('');
   const [saveToast, setSaveToast] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPlayingMusicPreview, setIsPlayingMusicPreview] = useState(bgMusic.getIsPlaying());
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -35,6 +37,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       };
       await setDoc(doc(db, 'settings', 'app_config'), payload, { merge: true });
       onUpdateConfig(payload);
+
+      // Sync background music state
+      if (payload.musicEnabled) {
+        bgMusic.setTrack(payload.musicTrack);
+        bgMusic.setVolume(payload.musicVolume);
+      } else {
+        bgMusic.stop();
+        setIsPlayingMusicPreview(false);
+      }
+
       setSaveToast(true);
       setTimeout(() => setSaveToast(false), 2500);
     } catch (err) {
@@ -56,6 +68,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       handleFirestoreError(err, OperationType.WRITE, 'settings/app_config');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const toggleMusicPreview = () => {
+    if (isPlayingMusicPreview) {
+      bgMusic.stop();
+      setIsPlayingMusicPreview(false);
+    } else {
+      bgMusic.start(formData.musicTrack, formData.musicVolume);
+      setIsPlayingMusicPreview(true);
     }
   };
 
@@ -126,6 +148,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     { id: 'grandThreeTier', name: '👑 Grand Celebration (3-Tier)', desc: 'Three-tier luxury cake with cascading glaze' },
   ];
 
+  const musicTracks: { id: MusicTrack; name: string; desc: string }[] = [
+    { id: 'lofiBirthday', name: '🎵 Romantic Lo-Fi Birthday', desc: 'Chill lo-fi chord progressions (Cmaj7-Am7-Fmaj7-G7)' },
+    { id: 'romanticPiano', name: '🎹 Acoustic Piano Serenade', desc: 'Warm acoustic piano arpeggios (Dmaj7-Bm7-Gmaj7-A7)' },
+    { id: 'acousticAura', name: '✨ Soft Dreamscape Aura', desc: 'Ethereal ambient pads and soft bells (Gmaj7-Em7-Cmaj7)' },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -135,11 +163,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
               <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Celebration Admin & Real-Time Sync Controller
+                Celebration Admin & Background Music Controller
               </h1>
             </div>
             <p className="text-sm text-slate-500 mt-1">
-              Changes made here instantly sync to all users and devices visiting your birthday link.
+              Configure romantic background lo-fi playlists, cake styles, love letter content, and real-time cloud sync.
             </p>
           </div>
 
@@ -160,7 +188,111 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 1: STAGE JUMP & PREVIEW CONTROLLER */}
+        {/* SECTION 1: BACKGROUND MUSIC CONTROLLER */}
+        <div className="bg-gradient-to-r from-rose-50 via-purple-50 to-pink-50 rounded-xl border border-rose-200 p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎶</span>
+                <h2 className="text-base font-bold text-slate-900">
+                  Background Music & Romantic Lo-Fi Playlist
+                </h2>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Automatically starts playing soft romantic lo-fi birthday melody when visitors open or touch the app.
+              </p>
+            </div>
+
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-rose-200 shadow-xs">
+              <span className="text-xs font-semibold text-slate-700">
+                {formData.musicEnabled ? 'Music Enabled' : 'Music Muted'}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({ ...formData, musicEnabled: !formData.musicEnabled })
+                }
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  formData.musicEnabled ? 'bg-rose-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    formData.musicEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {formData.musicEnabled && (
+            <div className="space-y-4 pt-2 border-t border-rose-200/60">
+              {/* Track Selector */}
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-2">
+                  Select Melody Playlist Track
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {musicTracks.map((tr) => {
+                    const isSelected = formData.musicTrack === tr.id;
+                    return (
+                      <button
+                        key={tr.id}
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, musicTrack: tr.id });
+                          bgMusic.setTrack(tr.id);
+                        }}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-rose-500 bg-white shadow-sm ring-2 ring-rose-500/20'
+                            : 'border-slate-200 bg-white/60 hover:bg-white'
+                        }`}
+                      >
+                        <div className="text-xs font-bold text-slate-800">{tr.name}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{tr.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Volume Slider & Test Play Button */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 p-3.5 rounded-xl border border-rose-200/80">
+                <div className="flex-1 max-w-xs">
+                  <div className="flex justify-between items-center text-xs font-medium text-slate-700 mb-1">
+                    <span>Playlist Volume</span>
+                    <span className="text-rose-600 font-bold">{Math.round(formData.musicVolume * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={formData.musicVolume}
+                    onChange={(e) => {
+                      const vol = parseFloat(e.target.value);
+                      setFormData({ ...formData, musicVolume: vol });
+                      bgMusic.setVolume(vol);
+                    }}
+                    className="w-full accent-rose-500 cursor-pointer"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={toggleMusicPreview}
+                  className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer self-start sm:self-center"
+                >
+                  <span>{isPlayingMusicPreview ? '⏸ Pause Preview' : '▶ Play Test Loop'}</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 2: STAGE JUMP & PREVIEW CONTROLLER */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900 mb-1">
             Live Stage Navigator
@@ -225,7 +357,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: CAKE DESIGN SELECTOR */}
+        {/* SECTION 3: CAKE DESIGN SELECTOR */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
           <h2 className="text-base font-semibold text-slate-900">
             Cake Architecture Design
@@ -255,7 +387,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 3: LETTER CONTENT & RECIPIENT SETTINGS */}
+        {/* SECTION 4: LETTER CONTENT & RECIPIENT SETTINGS */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
           <h2 className="text-base font-semibold text-slate-900">
             Letter & Personalization Details
@@ -365,7 +497,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 4: COUNTDOWN TARGET & THEME */}
+        {/* SECTION 5: COUNTDOWN TARGET & THEME */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
           <h2 className="text-base font-semibold text-slate-900">
             Countdown Target & Visual Theme

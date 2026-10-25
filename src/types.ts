@@ -4,6 +4,8 @@ export type AppTheme = 'blackPurplePink' | 'roseGold' | 'midnightStar' | 'lavend
 
 export type CakeStyle = 'butterflyPink' | 'royalPurpleTwoTier' | 'grandThreeTier';
 
+export type MusicTrack = 'lofiBirthday' | 'romanticPiano' | 'acousticAura';
+
 export interface AppConfig {
   recipientName: string;
   senderName: string;
@@ -16,6 +18,9 @@ export interface AppConfig {
   theme: AppTheme;
   cakeStyle: CakeStyle;
   soundEnabled: boolean;
+  musicEnabled: boolean;
+  musicVolume: number;
+  musicTrack: MusicTrack;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -35,4 +40,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   theme: 'blackPurplePink',
   cakeStyle: 'butterflyPink',
   soundEnabled: true,
+  musicEnabled: true,
+  musicVolume: 0.35,
+  musicTrack: 'lofiBirthday',
 };
