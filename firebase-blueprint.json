@@ -27,8 +27,11 @@
         "musicVolume": { "type": "number" },
         "musicTrack": {
           "type": "string",
-          "enum": ["lofiBirthday", "romanticPiano", "acousticAura"]
+          "enum": ["lofiBirthday", "romanticPiano", "acousticAura", "youtube"]
         },
+        "youtubeUrl": { "type": "string" },
+        "musicLoop": { "type": "boolean" },
+        "musicStartOffset": { "type": "number" },
         "updatedAt": { "type": "string" }
       },
       "required": ["recipientName", "targetDateISO", "theme", "cakeStyle", "letterTitle", "letterBody", "soundEnabled"]

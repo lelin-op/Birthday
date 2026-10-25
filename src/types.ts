@@ -36,6 +36,7 @@ export interface AppConfig {
   musicTrack: MusicTrack;
   youtubeUrl: string;
   musicLoop: boolean;
+  musicStartOffset: number;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -60,4 +61,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   musicTrack: 'lofiBirthday',
   youtubeUrl: '',
   musicLoop: true,
+  musicStartOffset: 0,
 };

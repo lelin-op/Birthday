@@ -27,6 +27,7 @@ service cloud.firestore {
         (!('photoCaption' in data) || (data.photoCaption is string && data.photoCaption.size() <= 300)) &&
         (!('youtubeUrl' in data) || (data.youtubeUrl is string && data.youtubeUrl.size() <= 2000)) &&
         (!('musicLoop' in data) || (data.musicLoop is bool)) &&
+        (!('musicStartOffset' in data) || (data.musicStartOffset is number || data.musicStartOffset is int)) &&
         (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100));
     }
 

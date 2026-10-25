@@ -94,9 +94,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       // Sync background music state
       if (payload.musicEnabled) {
-        if (payload.musicTrack !== 'youtube') {
+        if (payload.musicTrack !== 'youtube' && !payload.youtubeUrl) {
           bgMusic.setTrack(payload.musicTrack);
           bgMusic.setVolume(payload.musicVolume);
+          bgMusic.setStartOffset(payload.musicStartOffset || 0);
+        } else {
+          bgMusic.stop();
         }
       } else {
         bgMusic.stop();
@@ -142,10 +145,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const toggleMusicPreview = () => {
     if (isPlayingMusicPreview) {
-      bgMusic.stop();
+      if (formData.musicTrack !== 'youtube' && !formData.youtubeUrl) {
+        bgMusic.stop();
+      }
       setIsPlayingMusicPreview(false);
     } else {
-      bgMusic.start(formData.musicTrack, formData.musicVolume);
+      if (formData.musicTrack !== 'youtube' && !formData.youtubeUrl) {
+        bgMusic.start(formData.musicTrack, formData.musicVolume, formData.musicStartOffset || 0);
+      }
       setIsPlayingMusicPreview(true);
     }
   };
@@ -437,9 +444,110 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   youtubeUrl={formData.youtubeUrl}
                   volume={formData.musicVolume}
                   loop={formData.musicLoop}
+                  startOffset={formData.musicStartOffset || 0}
                   isPlaying={isPlayingMusicPreview && formData.musicEnabled}
                 />
               )}
+
+              {/* Start Time Offset & Silent Intro Skip Controller */}
+              <div className="bg-white/90 p-4 rounded-xl border border-rose-200 space-y-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <span>⏱️ Music Start Offset & Loop Point</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold">
+                        Skip Silent Intro
+                      </span>
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                      Set where the music should begin playing and where it loops back to every time. Perfect if your song has talking, silence, or a slow intro!
+                    </p>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-sm font-mono font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
+                      {Math.floor((formData.musicStartOffset || 0) / 60)}:
+                      {String((formData.musicStartOffset || 0) % 60).padStart(2, '0')}
+                    </span>
+                    <span className="block text-[10px] text-slate-400 mt-0.5">({formData.musicStartOffset || 0} seconds)</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="range"
+                      min="0"
+                      max="180"
+                      step="1"
+                      value={formData.musicStartOffset || 0}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10) || 0;
+                        isDirtyRef.current = true;
+                        setFormData({ ...formData, musicStartOffset: val });
+                        bgMusic.setStartOffset(val);
+                      }}
+                      className="w-full accent-rose-500 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                      <span>0s (Beginning)</span>
+                      <span>30s</span>
+                      <span>1m 00s</span>
+                      <span>2m 00s</span>
+                      <span>3m 00s</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="600"
+                      value={formData.musicStartOffset || 0}
+                      onChange={(e) => {
+                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        isDirtyRef.current = true;
+                        setFormData({ ...formData, musicStartOffset: val });
+                        bgMusic.setStartOffset(val);
+                      }}
+                      className="w-20 px-2.5 py-1.5 text-xs font-mono font-bold text-center border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                    />
+                    <span className="text-xs text-slate-500 font-medium">sec</span>
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 mr-1">Presets:</span>
+                  {[
+                    { label: '0s (Start)', val: 0 },
+                    { label: '5s', val: 5 },
+                    { label: '10s', val: 10 },
+                    { label: '15s', val: 15 },
+                    { label: '20s', val: 20 },
+                    { label: '30s', val: 30 },
+                    { label: '45s', val: 45 },
+                    { label: '60s (1m)', val: 60 },
+                  ].map((preset) => (
+                    <button
+                      key={preset.val}
+                      type="button"
+                      onClick={() => {
+                        isDirtyRef.current = true;
+                        setFormData({ ...formData, musicStartOffset: preset.val });
+                        bgMusic.setStartOffset(preset.val);
+                      }}
+                      className={`px-2 py-0.5 text-[11px] rounded-md font-medium transition-colors cursor-pointer border ${
+                        (formData.musicStartOffset || 0) === preset.val
+                          ? 'bg-rose-500 text-white border-rose-500'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Volume Slider & Loop Toggle & Test Play Button */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 p-3.5 rounded-xl border border-rose-200/80">

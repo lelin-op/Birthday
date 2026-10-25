@@ -11,6 +11,7 @@ class BackgroundMusicEngine {
   private currentTrack: MusicTrack = 'lofiBirthday';
   private timerId: ReturnType<typeof setInterval> | null = null;
   private currentStep = 0;
+  private startOffsetSec = 0;
 
   // Chord Progressions (Frequencies in Hz for warm romantic vibes)
   // Cmaj7 -> Am7 -> Fmaj7 -> G7 (Lo-fi Birthday)
@@ -56,9 +57,11 @@ class BackgroundMusicEngine {
     return this.ctx;
   }
 
-  public start(track: MusicTrack = 'lofiBirthday', volume = 0.35) {
+  public start(track: MusicTrack = 'lofiBirthday', volume = 0.35, startOffset = 0) {
     this.currentTrack = track;
     this.volume = volume;
+    this.startOffsetSec = Math.max(0, startOffset);
+    this.currentStep = Math.floor(this.startOffsetSec / 1.2);
 
     const ctx = this.initContext();
     if (!ctx) return;
@@ -70,7 +73,7 @@ class BackgroundMusicEngine {
       this.gainNode.gain.setValueAtTime(this.volume * 0.4, ctx.currentTime);
     }
 
-    // Play initial note
+    // Play initial note from offset
     this.playStep();
 
     // Loop steps every 1200ms for relaxed tempo (~50 BPM lo-fi chill)
@@ -96,6 +99,11 @@ class BackgroundMusicEngine {
 
   public setTrack(track: MusicTrack) {
     this.currentTrack = track;
+  }
+
+  public setStartOffset(offsetSec: number) {
+    this.startOffsetSec = Math.max(0, offsetSec);
+    this.currentStep = Math.floor(this.startOffsetSec / 1.2);
   }
 
   public getIsPlaying(): boolean {

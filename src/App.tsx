@@ -95,20 +95,26 @@ export default function App() {
 
   // Sync background music engine parameters when config changes
   useEffect(() => {
-    if (config.musicEnabled) {
+    if (config.musicEnabled && !config.youtubeUrl) {
       bgMusic.setTrack(config.musicTrack);
       bgMusic.setVolume(config.musicVolume);
-    } else {
+      bgMusic.setStartOffset(config.musicStartOffset || 0);
+    } else if (!config.musicEnabled) {
       bgMusic.stop();
       setIsMusicActive(false);
+    } else if (config.youtubeUrl) {
+      // YouTube is selected; avoid synth overlap
+      bgMusic.stop();
     }
-  }, [config.musicEnabled, config.musicTrack, config.musicVolume]);
+  }, [config.musicEnabled, config.musicTrack, config.musicVolume, config.musicStartOffset, config.youtubeUrl]);
 
   // Auto-play background music on first user gesture (click/touch)
   useEffect(() => {
     const handleUserInteraction = () => {
-      if (config.musicEnabled && !bgMusic.getIsPlaying()) {
-        bgMusic.start(config.musicTrack, config.musicVolume);
+      if (config.musicEnabled && !isMusicActive) {
+        if (!config.youtubeUrl && !bgMusic.getIsPlaying()) {
+          bgMusic.start(config.musicTrack, config.musicVolume, config.musicStartOffset || 0);
+        }
         setIsMusicActive(true);
       }
     };
@@ -120,7 +126,7 @@ export default function App() {
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('touchstart', handleUserInteraction);
     };
-  }, [config.musicEnabled, config.musicTrack, config.musicVolume]);
+  }, [config.musicEnabled, config.musicTrack, config.musicVolume, config.musicStartOffset, config.youtubeUrl, isMusicActive]);
 
   // URL Navigation helper
   const navigateTo = (path: '/admin' | '/') => {
@@ -215,12 +221,16 @@ export default function App() {
   };
 
   const toggleMusic = () => {
-    if (bgMusic.getIsPlaying()) {
-      bgMusic.stop();
-      setIsMusicActive(false);
+    if (config.youtubeUrl) {
+      setIsMusicActive((prev) => !prev);
     } else {
-      bgMusic.start(config.musicTrack, config.musicVolume);
-      setIsMusicActive(true);
+      if (bgMusic.getIsPlaying()) {
+        bgMusic.stop();
+        setIsMusicActive(false);
+      } else {
+        bgMusic.start(config.musicTrack, config.musicVolume, config.musicStartOffset || 0);
+        setIsMusicActive(true);
+      }
     }
   };
 
@@ -256,6 +266,7 @@ export default function App() {
           youtubeUrl={config.youtubeUrl}
           volume={config.musicVolume}
           loop={config.musicLoop}
+          startOffset={config.musicStartOffset || 0}
           isPlaying={isMusicActive && config.musicEnabled}
         />
       )}
