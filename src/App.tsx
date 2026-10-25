@@ -14,6 +14,7 @@ import { Navbar } from './components/Navbar';
 import { AdminPanel } from './components/Admin/AdminPanel';
 import { sounds } from './utils/soundEffects';
 import { bgMusic } from './utils/backgroundMusic';
+import { YouTubeMusicPlayer } from './components/YouTubeMusicPlayer';
 import type { AppState, AppConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
 import confetti from 'canvas-confetti';
@@ -227,6 +228,16 @@ export default function App() {
       {/* Ambient Radial Mesh */}
       {config.theme === 'blackPurplePink' && (
         <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-15%,rgba(168,85,247,0.28),rgba(244,63,94,0.18),rgba(9,5,20,1))]" />
+      )}
+
+      {/* Custom YouTube Music Player */}
+      {config.youtubeUrl && (
+        <YouTubeMusicPlayer
+          youtubeUrl={config.youtubeUrl}
+          volume={config.musicVolume}
+          loop={config.musicLoop}
+          isPlaying={isMusicActive && config.musicEnabled}
+        />
       )}
 
       {/* Layered Visual Elements */}

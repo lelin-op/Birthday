@@ -48,20 +48,23 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
 
   // Candle placements tailored to cake tier geometry
   const candlePositions =
-    cakeStyle === 'grandThreeTier'
+    cakeStyle === 'grandThreeTier' || cakeStyle === 'pastelRainbow'
       ? [
           { id: 0, x: 140, y: 55, delay: 0 },
           { id: 1, x: 180, y: 48, delay: 0.15 },
           { id: 2, x: 220, y: 55, delay: 0.3 },
         ]
-      : cakeStyle === 'royalPurpleTwoTier'
+      : cakeStyle === 'royalPurpleTwoTier' ||
+        cakeStyle === 'midnightGalaxy' ||
+        cakeStyle === 'oceanBreeze' ||
+        cakeStyle === 'vintageCoquette'
       ? [
           { id: 0, x: 135, y: 65, delay: 0 },
           { id: 1, x: 180, y: 56, delay: 0.15 },
           { id: 2, x: 225, y: 65, delay: 0.3 },
         ]
       : [
-          // butterflyPink
+          // 1-Tier styles (butterflyPink, goldenLuxury, strawberryVelvet, matchaBlossom, chocolateFudge, chocolatierGold, fairyGarden)
           { id: 0, x: 135, y: 85, delay: 0 },
           { id: 1, x: 180, y: 75, delay: 0.15 },
           { id: 2, x: 225, y: 85, delay: 0.3 },
@@ -121,11 +124,42 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
               <stop offset="100%" stopColor="#9333ea" />
             </linearGradient>
 
-            {/* Gold Stand Gradient */}
+            {/* Gold Stand & Accents Gradient */}
             <linearGradient id="goldStandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#fef08a" />
               <stop offset="50%" stopColor="#eab308" />
               <stop offset="100%" stopColor="#ca8a04" />
+            </linearGradient>
+
+            {/* Velvet & Chocolate Gradients */}
+            <linearGradient id="velvetGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#f87171" />
+              <stop offset="50%" stopColor="#dc2626" />
+              <stop offset="100%" stopColor="#991b1b" />
+            </linearGradient>
+
+            <linearGradient id="chocolateGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#78350f" />
+              <stop offset="50%" stopColor="#451a03" />
+              <stop offset="100%" stopColor="#290e02" />
+            </linearGradient>
+
+            <linearGradient id="galaxyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#a855f7" />
+              <stop offset="50%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#1e1b4b" />
+            </linearGradient>
+
+            <linearGradient id="matchaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#bbf7d0" />
+              <stop offset="50%" stopColor="#4ade80" />
+              <stop offset="100%" stopColor="#15803d" />
+            </linearGradient>
+
+            <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#67e8f9" />
+              <stop offset="50%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#0e7490" />
             </linearGradient>
 
             <radialGradient id="pearlGrad" cx="35%" cy="35%" r="65%">
@@ -155,120 +189,163 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
             <ellipse cx="180" cy="283" rx="148" ry="8" fill="#000000" opacity="0.12" />
           </g>
 
-          {/* CAKE STYLE 1: BUTTERFLY PINK (1 TIER - USER FAVORITE) */}
+          {/* CAKE STYLE 1: BUTTERFLY PINK (1 TIER) */}
           {cakeStyle === 'butterflyPink' && (
             <g id="style-butterfly-pink">
-              {/* Cylinder Body */}
-              <path
-                d="M60,140 C60,140 60,250 60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z"
-                fill="url(#pinkCakeGrad)"
-                stroke="#be123c"
-                strokeWidth="2"
-              />
-
-              {/* White Cream Base Swirl */}
-              <path
-                d="M60,245 C80,265 110,268 140,260 C170,268 200,268 230,260 C260,268 285,260 300,245 C300,255 245,280 180,280 C115,280 60,255 60,245 Z"
-                fill="#ffffff"
-                stroke="#f472b6"
-                strokeWidth="1.2"
-              />
-
-              {/* Frosting Swirl Ridges */}
+              <path d="M60,140 C60,140 60,250 60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="url(#pinkCakeGrad)" stroke="#be123c" strokeWidth="2" />
+              <path d="M60,245 C80,265 110,268 140,260 C170,268 200,268 230,260 C260,268 285,260 300,245 C300,255 245,280 180,280 C115,280 60,255 60,245 Z" fill="#ffffff" stroke="#f472b6" strokeWidth="1.2" />
               <path d="M60,170 C100,182 180,186 300,170" fill="none" stroke="#fbcfe8" strokeWidth="2.5" opacity="0.7" />
               <path d="M60,195 C100,207 180,211 300,195" fill="none" stroke="#fbcfe8" strokeWidth="2.5" opacity="0.7" />
-              <path d="M60,220 C100,232 180,236 300,220" fill="none" stroke="#fbcfe8" strokeWidth="2.5" opacity="0.7" />
-
-              {/* Cake Top Oval */}
               <ellipse cx="180" cy="140" rx="120" ry="30" fill="url(#cakeTopGrad)" stroke="#be123c" strokeWidth="2" />
-              <ellipse cx="180" cy="140" rx="95" ry="24" fill="none" stroke="#ffffff" strokeWidth="1.8" opacity="0.6" />
-
-              {/* Handwritten Calligraphy Piping */}
-              <text
-                x="180"
-                y="142"
-                textAnchor="middle"
-                fill="#ffffff"
-                fontSize="14"
-                fontFamily="Dancing Script, cursive"
-                fontWeight="bold"
-                filter="url(#pinkGlow)"
-              >
+              <text x="180" y="142" textAnchor="middle" fill="#ffffff" fontSize="14" fontFamily="Dancing Script, cursive" fontWeight="bold" filter="url(#pinkGlow)">
                 Happy Birthday, {recipientName}!
               </text>
-
-              {/* Sugar Pearls */}
-              <circle cx="95" cy="132" r="4.5" fill="url(#pearlGrad)" stroke="#f472b6" strokeWidth="0.8" />
-              <circle cx="265" cy="132" r="4.5" fill="url(#pearlGrad)" stroke="#f472b6" strokeWidth="0.8" />
-              <circle cx="105" cy="255" r="5" fill="url(#pearlGrad)" stroke="#f472b6" strokeWidth="0.8" />
-              <circle cx="255" cy="255" r="5" fill="url(#pearlGrad)" stroke="#f472b6" strokeWidth="0.8" />
-
-              {/* Pink Butterflies */}
-              <g transform="translate(85, 185) scale(0.9) rotate(-15)">
-                <path d="M25,25 C5,0 -15,10 0,35 C-15,50 5,60 25,35 Z" fill="#f472b6" stroke="#9d174d" strokeWidth="1.8" />
-                <path d="M25,25 C45,0 65,10 50,35 C65,50 45,60 25,35 Z" fill="#fb7185" stroke="#9d174d" strokeWidth="1.8" />
-                <ellipse cx="25" cy="30" rx="2.5" ry="12" fill="#831843" />
-              </g>
-
-              <g transform="translate(245, 170) scale(0.8) rotate(15)">
-                <path d="M25,25 C5,0 -15,10 0,35 C-15,50 5,60 25,35 Z" fill="#fb7185" stroke="#9d174d" strokeWidth="1.8" />
-                <path d="M25,25 C45,0 65,10 50,35 C65,50 45,60 25,35 Z" fill="#f472b6" stroke="#9d174d" strokeWidth="1.8" />
-                <ellipse cx="25" cy="30" rx="2.5" ry="12" fill="#831843" />
-              </g>
             </g>
           )}
 
           {/* CAKE STYLE 2: ROYAL PURPLE TWO-TIER */}
           {cakeStyle === 'royalPurpleTwoTier' && (
             <g id="style-purple-two-tier">
-              {/* Bottom Tier */}
-              <path
-                d="M60,180 C60,180 60,255 60,255 C60,272 115,280 180,280 C245,280 300,272 300,255 L300,180 Z"
-                fill="url(#purpleBottomGrad)"
-                stroke="#581c87"
-                strokeWidth="2"
-              />
+              <path d="M60,180 C60,180 60,255 60,255 C60,272 115,280 180,280 C245,280 300,272 300,255 L300,180 Z" fill="url(#purpleBottomGrad)" stroke="#581c87" strokeWidth="2" />
               <ellipse cx="180" cy="180" rx="120" ry="26" fill="#c084fc" stroke="#581c87" strokeWidth="2" />
-
-              {/* Bottom Tier Rosettes */}
-              {Array.from({ length: 9 }).map((_, i) => (
-                <circle key={i} cx={75 + i * 26} cy={262} r="6" fill="#fdf4ff" stroke="#c084fc" strokeWidth="1.2" />
-              ))}
-
-              {/* Top Tier */}
-              <path
-                d="M95,115 C95,115 95,175 95,175 C95,190 135,198 180,198 C225,198 265,190 265,175 L265,115 Z"
-                fill="url(#purpleTopGrad)"
-                stroke="#581c87"
-                strokeWidth="2"
-              />
+              <path d="M95,115 C95,115 95,175 95,175 C95,190 135,198 180,198 C225,198 265,190 265,175 L265,115 Z" fill="url(#purpleTopGrad)" stroke="#581c87" strokeWidth="2" />
               <ellipse cx="180" cy="115" rx="85" ry="18" fill="#f5d0fe" stroke="#581c87" strokeWidth="2" />
-
-              {/* Gold Plaque */}
               <rect x="135" y="142" width="90" height="22" rx="11" fill="#ffffff" stroke="#c084fc" strokeWidth="1.5" />
-              <text x="180" y="157" textAnchor="middle" fill="#9333ea" fontSize="11" fontFamily="Dancing Script, cursive" fontWeight="bold">
-                Happy Birthday!
-              </text>
+              <text x="180" y="157" textAnchor="middle" fill="#9333ea" fontSize="11" fontFamily="Dancing Script, cursive" fontWeight="bold">Happy Birthday!</text>
             </g>
           )}
 
           {/* CAKE STYLE 3: GRAND THREE-TIER */}
           {cakeStyle === 'grandThreeTier' && (
             <g id="style-grand-three-tier">
-              {/* Bottom Tier */}
               <path d="M50,210 L50,260 C50,275 110,283 180,283 C250,283 310,275 310,260 L310,210 Z" fill="url(#pinkCakeGrad)" stroke="#be123c" strokeWidth="2" />
               <ellipse cx="180" cy="210" rx="130" ry="25" fill="#fbcfe8" stroke="#be123c" strokeWidth="2" />
-
-              {/* Middle Tier */}
               <path d="M85,145 L85,195 C85,208 128,216 180,216 C232,216 275,208 275,195 L275,145 Z" fill="url(#purpleTopGrad)" stroke="#6b21a8" strokeWidth="2" />
               <ellipse cx="180" cy="145" rx="95" ry="20" fill="#f5d0fe" stroke="#6b21a8" strokeWidth="2" />
-
-              {/* Top Tier */}
               <path d="M115,90 L115,130 C115,140 145,148 180,148 C215,148 245,140 245,130 L245,90 Z" fill="url(#pinkCakeGrad)" stroke="#be123c" strokeWidth="2" />
               <ellipse cx="180" cy="90" rx="65" ry="15" fill="#fbcfe8" stroke="#be123c" strokeWidth="2" />
+            </g>
+          )}
 
-              {/* Top Drip Icing */}
-              <path d="M115,90 C130,105 145,102 155,90 C165,108 185,110 195,90 C205,106 225,104 245,90 Z" fill="#ffffff" opacity="0.9" />
+          {/* CAKE STYLE 4: GOLDEN LUXURY */}
+          {cakeStyle === 'goldenLuxury' && (
+            <g id="style-golden-luxury">
+              <path d="M60,140 L60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="#ffffff" stroke="#eab308" strokeWidth="2" />
+              <path d="M60,140 Q90,180 120,150 Q150,190 180,145 Q210,185 240,150 Q270,180 300,140 L300,165 Q270,205 240,175 Q210,210 180,170 Q150,215 120,175 Q90,205 60,165 Z" fill="url(#goldStandGrad)" opacity="0.95" />
+              <ellipse cx="180" cy="140" rx="120" ry="30" fill="#fefce8" stroke="#ca8a04" strokeWidth="2" />
+              {Array.from({ length: 11 }).map((_, i) => (
+                <circle key={i} cx={70 + i * 22} cy={268} r="4.5" fill="url(#goldStandGrad)" stroke="#ca8a04" strokeWidth="0.8" />
+              ))}
+              <text x="180" y="142" textAnchor="middle" fill="#854d0e" fontSize="13" fontFamily="Dancing Script, cursive" fontWeight="bold">Shine Bright ✨</text>
+            </g>
+          )}
+
+          {/* CAKE STYLE 5: STRAWBERRY VELVET */}
+          {cakeStyle === 'strawberryVelvet' && (
+            <g id="style-strawberry-velvet">
+              <path d="M60,140 L60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="url(#velvetGrad)" stroke="#991b1b" strokeWidth="2" />
+              <ellipse cx="180" cy="140" rx="120" ry="30" fill="#fff1f2" stroke="#991b1b" strokeWidth="2" />
+              {/* Fresh Strawberries */}
+              {[105, 145, 180, 215, 255].map((cx, i) => (
+                <g key={i} transform={`translate(${cx}, 132) scale(0.7)`}>
+                  <path d="M0,0 C-12,-15 12,-15 0,0 C-15,18 15,18 0,0 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1" />
+                  <circle cx="-2" cy="4" r="1" fill="#fef08a" />
+                  <circle cx="3" cy="-2" r="1" fill="#fef08a" />
+                </g>
+              ))}
+              <text x="180" y="210" textAnchor="middle" fill="#ffffff" fontSize="15" fontFamily="Dancing Script, cursive" fontWeight="bold">Sweetest Love 🍓</text>
+            </g>
+          )}
+
+          {/* CAKE STYLE 6: MIDNIGHT GALAXY */}
+          {cakeStyle === 'midnightGalaxy' && (
+            <g id="style-midnight-galaxy">
+              <path d="M60,180 L60,255 C60,272 115,280 180,280 C245,280 300,272 300,255 L300,180 Z" fill="url(#galaxyGrad)" stroke="#312e81" strokeWidth="2" />
+              <ellipse cx="180" cy="180" rx="120" ry="26" fill="#1e1b4b" stroke="#312e81" strokeWidth="2" />
+              <path d="M95,115 L95,175 C95,190 135,198 180,198 C225,198 265,190 265,175 L265,115 Z" fill="url(#galaxyGrad)" stroke="#312e81" strokeWidth="2" />
+              <ellipse cx="180" cy="115" rx="85" ry="18" fill="#312e81" stroke="#312e81" strokeWidth="2" />
+              {/* Constellation Sparkles */}
+              {[120, 160, 200, 240].map((x, i) => (
+                <text key={i} x={x} y={150 + (i % 2) * 20} fill="#fef08a" fontSize="12">✨</text>
+              ))}
+            </g>
+          )}
+
+          {/* CAKE STYLE 7: MATCHA BLOSSOM */}
+          {cakeStyle === 'matchaBlossom' && (
+            <g id="style-matcha-blossom">
+              <path d="M60,140 L60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="url(#matchaGrad)" stroke="#14532d" strokeWidth="2" />
+              <ellipse cx="180" cy="140" rx="120" ry="30" fill="#f0fdf4" stroke="#14532d" strokeWidth="2" />
+              {/* Cherry Blossoms */}
+              {[100, 150, 210, 260].map((x, i) => (
+                <circle key={i} cx={x} cy={160 + i * 20} r="7" fill="#fbcfe8" stroke="#f472b6" strokeWidth="1" />
+              ))}
+              <text x="180" y="142" textAnchor="middle" fill="#14532d" fontSize="13" fontFamily="Dancing Script, cursive" fontWeight="bold">Matcha Blossom 🌸</text>
+            </g>
+          )}
+
+          {/* CAKE STYLE 8: CHOCOLATE FUDGE */}
+          {cakeStyle === 'chocolateFudge' && (
+            <g id="style-chocolate-fudge">
+              <path d="M60,140 L60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="url(#chocolateGrad)" stroke="#290e02" strokeWidth="2" />
+              <ellipse cx="180" cy="140" rx="120" ry="30" fill="#451a03" stroke="#290e02" strokeWidth="2" />
+              <path d="M60,140 Q90,170 120,145 Q150,180 180,140 Q210,175 240,145 Q270,170 300,140 L300,160 C245,180 115,180 60,160 Z" fill="#78350f" opacity="0.9" />
+              <text x="180" y="210" textAnchor="middle" fill="#fef08a" fontSize="15" fontFamily="Dancing Script, cursive" fontWeight="bold">Decadent Fudge 🍫</text>
+            </g>
+          )}
+
+          {/* CAKE STYLE 9: PASTEL RAINBOW */}
+          {cakeStyle === 'pastelRainbow' && (
+            <g id="style-pastel-rainbow">
+              <path d="M50,210 L50,260 C50,275 110,283 180,283 C250,283 310,275 310,260 L310,210 Z" fill="#fbcfe8" stroke="#f472b6" strokeWidth="2" />
+              <ellipse cx="180" cy="210" rx="130" ry="25" fill="#bae6fd" stroke="#0284c7" strokeWidth="2" />
+              <path d="M85,145 L85,195 C85,208 128,216 180,216 C232,216 275,208 275,195 L275,145 Z" fill="#fef08a" stroke="#ca8a04" strokeWidth="2" />
+              <ellipse cx="180" cy="145" rx="95" ry="20" fill="#f5d0fe" stroke="#a855f7" strokeWidth="2" />
+              <path d="M115,90 L115,130 C115,140 145,148 180,148 C215,148 245,140 245,130 L245,90 Z" fill="#bbf7d0" stroke="#16a34a" strokeWidth="2" />
+              <ellipse cx="180" cy="90" rx="65" ry="15" fill="#ffffff" stroke="#16a34a" strokeWidth="2" />
+            </g>
+          )}
+
+          {/* CAKE STYLE 10: OCEAN BREEZE */}
+          {cakeStyle === 'oceanBreeze' && (
+            <g id="style-ocean-breeze">
+              <path d="M60,180 L60,255 C60,272 115,280 180,280 C245,280 300,272 300,255 L300,180 Z" fill="url(#oceanGrad)" stroke="#0891b2" strokeWidth="2" />
+              <ellipse cx="180" cy="180" rx="120" ry="26" fill="#cff4fc" stroke="#0891b2" strokeWidth="2" />
+              <path d="M95,115 L95,175 C95,190 135,198 180,198 C225,198 265,190 265,175 L265,115 Z" fill="url(#oceanGrad)" stroke="#0891b2" strokeWidth="2" />
+              <ellipse cx="180" cy="115" rx="85" ry="18" fill="#e0f2fe" stroke="#0891b2" strokeWidth="2" />
+              <text x="180" y="155" textAnchor="middle" fill="#0891b2" fontSize="12" fontFamily="Dancing Script, cursive" fontWeight="bold">Ocean Dreams 🌊</text>
+            </g>
+          )}
+
+          {/* CAKE STYLE 11: VINTAGE COQUETTE */}
+          {cakeStyle === 'vintageCoquette' && (
+            <g id="style-vintage-coquette">
+              <path d="M60,180 L60,255 C60,272 115,280 180,280 C245,280 300,272 300,255 L300,180 Z" fill="url(#pinkCakeGrad)" stroke="#be123c" strokeWidth="2" />
+              <ellipse cx="180" cy="180" rx="120" ry="26" fill="#fbcfe8" stroke="#be123c" strokeWidth="2" />
+              <path d="M95,115 L95,175 C95,190 135,198 180,198 C225,198 265,190 265,175 L265,115 Z" fill="url(#pinkCakeGrad)" stroke="#be123c" strokeWidth="2" />
+              <ellipse cx="180" cy="115" rx="85" ry="18" fill="#ffffff" stroke="#be123c" strokeWidth="2" />
+              {/* Red Cherries */}
+              {[115, 180, 245].map((x, i) => (
+                <circle key={i} cx={x} cy={110} r="5" fill="#dc2626" />
+              ))}
+            </g>
+          )}
+
+          {/* CAKE STYLE 12: CHOCOLATIER GOLD */}
+          {cakeStyle === 'chocolatierGold' && (
+            <g id="style-chocolatier-gold">
+              <path d="M60,140 L60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="url(#chocolateGrad)" stroke="#18181b" strokeWidth="2" />
+              <ellipse cx="180" cy="140" rx="120" ry="30" fill="#27272a" stroke="#18181b" strokeWidth="2" />
+              <text x="180" y="142" textAnchor="middle" fill="#fef08a" fontSize="13" fontFamily="Dancing Script, cursive" fontWeight="bold">Golden Truffle 👑</text>
+            </g>
+          )}
+
+          {/* CAKE STYLE 13: FAIRY GARDEN */}
+          {cakeStyle === 'fairyGarden' && (
+            <g id="style-fairy-garden">
+              <path d="M60,140 L60,250 C60,270 115,280 180,280 C245,280 300,270 300,250 L300,140 Z" fill="url(#purpleTopGrad)" stroke="#6b21a8" strokeWidth="2" />
+              <ellipse cx="180" cy="140" rx="120" ry="30" fill="#f5d0fe" stroke="#6b21a8" strokeWidth="2" />
+              <text x="180" y="142" textAnchor="middle" fill="#6b21a8" fontSize="13" fontFamily="Dancing Script, cursive" fontWeight="bold">Fairy Garden 🧚‍♀️</text>
             </g>
           )}
 

@@ -2,9 +2,22 @@ export type AppState = 'COUNTDOWN' | 'CAKE_BLOW' | 'CANDLES_BLOWN' | 'LETTER_SHO
 
 export type AppTheme = 'blackPurplePink' | 'roseGold' | 'midnightStar' | 'lavenderDream' | 'candlelight';
 
-export type CakeStyle = 'butterflyPink' | 'royalPurpleTwoTier' | 'grandThreeTier';
+export type CakeStyle =
+  | 'butterflyPink'
+  | 'royalPurpleTwoTier'
+  | 'grandThreeTier'
+  | 'goldenLuxury'
+  | 'strawberryVelvet'
+  | 'midnightGalaxy'
+  | 'matchaBlossom'
+  | 'chocolateFudge'
+  | 'pastelRainbow'
+  | 'oceanBreeze'
+  | 'vintageCoquette'
+  | 'chocolatierGold'
+  | 'fairyGarden';
 
-export type MusicTrack = 'lofiBirthday' | 'romanticPiano' | 'acousticAura';
+export type MusicTrack = 'lofiBirthday' | 'romanticPiano' | 'acousticAura' | 'youtube';
 
 export interface AppConfig {
   recipientName: string;
@@ -21,6 +34,8 @@ export interface AppConfig {
   musicEnabled: boolean;
   musicVolume: number;
   musicTrack: MusicTrack;
+  youtubeUrl: string;
+  musicLoop: boolean;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -35,7 +50,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     "Growing and dreaming together, today and every tomorrow"
   ],
   targetDateISO: "2026-10-26T00:00:00",
-  photoUrl: "/src/assets/images/polaroid_romantic_couple_1792835016851.jpg",
+  photoUrl: "",
   photoCaption: "Our happiest moments together ✨",
   theme: 'blackPurplePink',
   cakeStyle: 'butterflyPink',
@@ -43,4 +58,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   musicEnabled: true,
   musicVolume: 0.35,
   musicTrack: 'lofiBirthday',
+  youtubeUrl: '',
+  musicLoop: true,
 };

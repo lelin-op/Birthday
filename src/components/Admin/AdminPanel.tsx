@@ -152,13 +152,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     { id: 'butterflyPink', name: '🌸 Butterfly Pink (1-Tier)', desc: 'Single-tier soft pink cake with butterflies & white pearls' },
     { id: 'royalPurpleTwoTier', name: '💜 Royal Purple (2-Tier)', desc: 'Two-tier purple velvet cake with rosette borders' },
     { id: 'grandThreeTier', name: '👑 Grand Celebration (3-Tier)', desc: 'Three-tier luxury cake with cascading glaze' },
+    { id: 'goldenLuxury', name: '✨ Golden Luxury (1-Tier)', desc: 'White cake with 24K gold dripping glaze & pearls' },
+    { id: 'strawberryVelvet', name: '🍓 Strawberry Red Velvet (1-Tier)', desc: 'Rich red velvet topped with fresh strawberries & mint' },
+    { id: 'midnightGalaxy', name: '🌌 Midnight Galaxy (2-Tier)', desc: 'Deep cosmic purple & blue cake with starlight sparkles' },
+    { id: 'matchaBlossom', name: '🌸 Matcha Blossom (1-Tier)', desc: 'Pastel matcha green cake with pink cherry blossoms' },
+    { id: 'chocolateFudge', name: '🍫 Chocolate Fudge (1-Tier)', desc: 'Rich dark chocolate fudge with caramel glaze' },
+    { id: 'pastelRainbow', name: '🌈 Pastel Rainbow (3-Tier)', desc: 'Pastel rainbow tiers with fluffy clouds & gold stars' },
+    { id: 'oceanBreeze', name: '🌊 Ocean Breeze (2-Tier)', desc: 'Turquoise seafoam cake with golden seashell pearls' },
+    { id: 'vintageCoquette', name: '🎀 Vintage Coquette (2-Tier)', desc: 'Vintage pink coquette piping with red cherries' },
+    { id: 'chocolatierGold', name: '👑 Chocolatier Truffle (1-Tier)', desc: 'Decadent chocolate truffle with gold foil leaves' },
+    { id: 'fairyGarden', name: '🧚‍♀️ Fairy Garden (1-Tier)', desc: 'Enchanted lavender cake with floral vines & fairy dust' },
   ];
 
   const musicTracks: { id: MusicTrack; name: string; desc: string }[] = [
-    { id: 'lofiBirthday', name: '🎵 Romantic Lo-Fi Birthday', desc: 'Chill lo-fi chord progressions (Cmaj7-Am7-Fmaj7-G7)' },
-    { id: 'romanticPiano', name: '🎹 Acoustic Piano Serenade', desc: 'Warm acoustic piano arpeggios (Dmaj7-Bm7-Gmaj7-A7)' },
-    { id: 'acousticAura', name: '✨ Soft Dreamscape Aura', desc: 'Ethereal ambient pads and soft bells (Gmaj7-Em7-Cmaj7)' },
+    { id: 'lofiBirthday', name: '🎵 Romantic Lo-Fi Birthday', desc: 'Chill lo-fi chord progressions' },
+    { id: 'romanticPiano', name: '🎹 Acoustic Piano Serenade', desc: 'Warm acoustic piano arpeggios' },
+    { id: 'acousticAura', name: '✨ Soft Dreamscape Aura', desc: 'Ethereal ambient pads and soft bells' },
+    { id: 'youtube', name: '📺 Custom YouTube Track', desc: 'Play any YouTube music link with volume & loop' },
   ];
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      alert('Image file is too large! Please choose a picture under 4MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          photoUrl: dataUrl,
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans">
@@ -264,7 +297,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              {/* Volume Slider & Test Play Button */}
+              {/* YouTube Custom URL Input */}
+              {(formData.musicTrack === 'youtube' || formData.youtubeUrl) && (
+                <div className="bg-white/90 p-4 rounded-xl border border-rose-200 space-y-2.5">
+                  <label className="block text-xs font-bold text-slate-800">
+                    📺 Custom YouTube Music Link
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.youtubeUrl || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        youtubeUrl: e.target.value,
+                        musicTrack: 'youtube',
+                      })
+                    }
+                    placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/..."
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Paste any YouTube music video or playlist link.
+                  </p>
+                </div>
+              )}
+
+              {/* Volume Slider & Loop Toggle & Test Play Button */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 p-3.5 rounded-xl border border-rose-200/80">
                 <div className="flex-1 max-w-xs">
                   <div className="flex justify-between items-center text-xs font-medium text-slate-700 mb-1">
@@ -284,6 +342,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     }}
                     className="w-full accent-rose-500 cursor-pointer"
                   />
+                </div>
+
+                {/* Loop Song Toggle */}
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-700">Loop Song:</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, musicLoop: !formData.musicLoop })}
+                    className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                      formData.musicLoop
+                        ? 'bg-rose-500 text-white shadow-xs'
+                        : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {formData.musicLoop ? '🔁 Loop On' : '➡️ Play Once'}
+                  </button>
                 </div>
 
                 <button
@@ -499,6 +573,98 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               >
                 Add Memory
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 4.5: POLAROID PHOTO UPLOADER */}
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📸</span>
+            <h2 className="text-base font-semibold text-slate-900">
+              Polaroid Keepsake Photo Uploader
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500">
+            Upload a picture of you together or paste an image URL to display inside the Polaroid frame in your love letter.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            {/* Thumbnail Preview */}
+            <div className="md:col-span-4 flex flex-col items-center">
+              <div className="w-40 p-2.5 bg-white rounded-lg shadow-md border border-slate-200 text-center relative group">
+                <div className="w-full aspect-square bg-slate-100 rounded-xs overflow-hidden relative flex items-center justify-center">
+                  {formData.photoUrl ? (
+                    <img
+                      src={formData.photoUrl}
+                      alt="Polaroid Memory Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-2 text-slate-400">
+                      <span className="text-2xl mb-1">🖼️</span>
+                      <span className="text-[11px]">No Photo Uploaded</span>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-2 text-xs font-script text-slate-600 font-semibold truncate">
+                  {formData.photoCaption || 'Us Together ✨'}
+                </p>
+              </div>
+            </div>
+
+            {/* Upload Controls */}
+            <div className="md:col-span-8 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Option 1: Upload Photo File from Device
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Supports JPG, PNG, WEBP files up to 4MB.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Option 2: Image URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.photoUrl}
+                  onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Photo Frame Caption
+                </label>
+                <input
+                  type="text"
+                  value={formData.photoCaption}
+                  onChange={(e) => setFormData({ ...formData, photoCaption: e.target.value })}
+                  placeholder="e.g. Our happiest moments together ✨"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                />
+              </div>
+
+              {formData.photoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, photoUrl: '' })}
+                  className="text-xs text-rose-600 hover:text-rose-800 font-medium underline cursor-pointer"
+                >
+                  Clear Photo
+                </button>
+              )}
             </div>
           </div>
         </div>

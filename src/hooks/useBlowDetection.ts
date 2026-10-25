@@ -115,21 +115,21 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
         }
         const rmsVolume = Math.sqrt(sumSquare / timeArray.length) * 100;
 
-        // Combined audio level indicator (0-100 scale)
-        const combinedLevel = Math.min(100, Math.round(Math.max(lowEnergy, rmsVolume * 2.2)));
+        // Combined audio level indicator (0-100 scale with high air puff amplification)
+        const combinedLevel = Math.min(100, Math.round(Math.max(lowEnergy * 1.6, rmsVolume * 3.8)));
         setMicVolume(combinedLevel);
 
-        // Calibration phase: measure initial background noise floor in first 15 frames
-        if (frameCount < 15) {
+        // Calibration phase: measure initial background noise floor in first 10 frames
+        if (frameCount < 10) {
           baselineEnergy = (baselineEnergy * frameCount + combinedLevel) / (frameCount + 1);
           frameCount++;
         } else {
-          // Dynamic blow threshold: must exceed ambient baseline + 12 OR reach minimum 16
-          const blowThreshold = Math.max(16, baselineEnergy + 12);
+          // Dynamic sensitive blow threshold: triggers on gentle air puff
+          const blowThreshold = Math.min(20, Math.max(10, baselineEnergy + 6));
 
           if (combinedLevel > blowThreshold && !isBlowingRef.current) {
             blowCount++;
-            if (blowCount >= 2) {
+            if (blowCount >= 1) {
               // Trigger blow action!
               isBlowingRef.current = true;
               onBlow();
@@ -137,7 +137,7 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
               return;
             }
           } else {
-            blowCount = Math.max(0, blowCount - 1);
+            blowCount = 0;
           }
         }
 
