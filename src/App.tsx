@@ -187,12 +187,12 @@ export default function App() {
     }, 400);
   };
 
-  // Microphone blow detection requested immediately upon entering the website
+  // Microphone blow detection is strictly enabled ONLY when on the CAKE_BLOW stage.
+  // This guarantees zero audio ducking, distortion, or OS communication mode interference during countdown!
+  const isCakeBlowStage = appState === 'CAKE_BLOW';
   const { permissionError, isListening, micVolume, enableMic } = useBlowDetection(() => {
-    if (appState === 'CAKE_BLOW') {
-      triggerCandleExtinguished();
-    }
-  }, true);
+    triggerCandleExtinguished();
+  }, isCakeBlowStage);
 
   const handleOpenEnvelope = () => {
     sounds.playEnvelopeOpen();

@@ -18,10 +18,10 @@ interface BirthdayCakeProps {
 export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
   isBlown,
   onBlow,
-  permissionError: _permissionError = false,
-  isListening: _isListening = false,
-  micVolume: _micVolume = 0,
-  enableMic: _enableMic,
+  permissionError = false,
+  isListening = false,
+  micVolume = 0,
+  enableMic,
   recipientName = 'My Love',
   cakeStyle = 'butterflyPink',
 }) => {
@@ -447,40 +447,74 @@ export const BirthdayCake: React.FC<BirthdayCakeProps> = ({
         </svg>
       </motion.div>
 
-      {/* Interactive Controls */}
-      <div className="mt-4 flex flex-col items-center gap-2.5 z-30">
-        {allCandlesExtinguished && (
-          <div className="text-center mb-1">
+      {/* Interactive Microphone & Blow Controls */}
+      <div className="mt-4 flex flex-col items-center gap-3 z-30 w-full max-w-sm">
+        {allCandlesExtinguished ? (
+          <div className="text-center mb-1 flex flex-col items-center gap-2">
             <p className="text-pink-400 font-script text-2xl sm:text-3xl font-bold drop-shadow-[0_0_15px_rgba(244,63,94,0.8)]">
               Your birthday wish is set in the stars! ✨
             </p>
-          </div>
-        )}
-
-        {/* Primary Action Button */}
-        {!allCandlesExtinguished ? (
-          <div className="flex flex-wrap items-center justify-center gap-2.5">
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleBlowAll}
-              className="px-6 py-2.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-[0_0_25px_rgba(244,63,94,0.5)] transition-all text-sm sm:text-base flex items-center gap-2 cursor-pointer border border-white/30"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setBlownCandles([false, false, false])}
+              className="mt-2 px-4 py-2 text-xs font-semibold text-pink-300 hover:text-white bg-slate-900/80 hover:bg-slate-900 rounded-xl border border-pink-500/40 shadow-xs transition-colors cursor-pointer"
             >
-              <span>🎂</span>
-              <span>Make a Wish</span>
+              Relight All Candles
             </motion.button>
           </div>
         ) : (
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={() => setBlownCandles([false, false, false])}
-            className="px-4 py-2 text-xs font-semibold text-pink-300 hover:text-white bg-slate-900/80 hover:bg-slate-900 rounded-xl border border-pink-500/40 shadow-xs transition-colors cursor-pointer"
-          >
-            Relight All Candles
-          </motion.button>
+          <>
+            {/* Live Microphone Status Banner */}
+            {isListening ? (
+              <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-emerald-500/50 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.25)] text-xs text-emerald-200">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-medium">Mic Active: Blow into your phone!</span>
+                {/* Responsive sound energy meter */}
+                <div className="w-14 h-2 bg-slate-800 rounded-full overflow-hidden border border-emerald-500/30 shrink-0">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-400 to-pink-500 transition-all duration-75"
+                    style={{ width: `${Math.min(100, Math.max(8, micVolume))}%` }}
+                  />
+                </div>
+              </div>
+            ) : !permissionError && enableMic ? (
+              <button
+                type="button"
+                onClick={() => enableMic()}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/70 hover:bg-slate-800 border border-pink-400/40 text-[11px] font-semibold text-pink-300 hover:text-white transition-all cursor-pointer shadow-xs"
+              >
+                <span>🎤</span>
+                <span>Enable Mic to Blow Candles</span>
+              </button>
+            ) : permissionError ? (
+              <span className="text-[11px] text-pink-300/70 text-center">
+                Mic not available — tap the candles or cake to blow them out!
+              </span>
+            ) : null}
+
+            {/* Primary Action Button */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBlowAll}
+                className="px-6 py-2.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-[0_0_25px_rgba(244,63,94,0.5)] transition-all text-sm sm:text-base flex items-center gap-2 cursor-pointer border border-white/30"
+              >
+                <span>🎂</span>
+                <span>Make a Wish (Blow Candles)</span>
+              </motion.button>
+            </div>
+
+            <p className="text-[11px] text-pink-200/60 text-center">
+              Blow directly on your screen or tap any candle to extinguish it
+            </p>
+          </>
         )}
       </div>
     </div>

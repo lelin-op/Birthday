@@ -17,22 +17,40 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const isBlowingRef = useRef(false);
+  const onBlowRef = useRef(onBlow);
+  const lastVolumeUpdateRef = useRef(0);
+  const lastVolumeRef = useRef(0);
+
+  // Keep callback ref fresh without restarting effects
+  useEffect(() => {
+    onBlowRef.current = onBlow;
+  }, [onBlow]);
 
   const stopDetection = useCallback(() => {
     setIsListening(false);
     setMicVolume(0);
-    isBlowingRef.current = false;
+    lastVolumeRef.current = 0;
 
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
+      try {
+        streamRef.current.getTracks().forEach((t) => {
+          t.stop();
+        });
+      } catch {
+        // ignore
+      }
       streamRef.current = null;
     }
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close().catch(() => {});
+      try {
+        audioContextRef.current.close().catch(() => {});
+      } catch {
+        // ignore
+      }
       audioContextRef.current = null;
     }
   }, []);
@@ -43,12 +61,23 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
       return;
     }
 
+    // Clean up any stale streams first
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
     try {
-      // Use standard audio request parameters compatible with mobile & desktop browsers
+      // Request raw audio without aggressive voice filtering so air puffs are preserved
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
+          autoGainControl: false,
         },
       });
 
@@ -72,7 +101,7 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
 
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.2; // Fast reaction time for air puffs
+      analyser.smoothingTimeConstant = 0.15; // Responsive to rapid breath changes
       analyserRef.current = analyser;
 
       const source = audioCtx.createMediaStreamSource(stream);
@@ -81,9 +110,10 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
       const freqArray = new Uint8Array(analyser.frequencyBinCount);
       const timeArray = new Uint8Array(analyser.fftSize);
 
-      let blowCount = 0;
+      let blowStreak = 0;
       let frameCount = 0;
-      let baselineEnergy = 0;
+      let rollingBaseline = 15;
+      isBlowingRef.current = false;
 
       setIsListening(true);
       setPermissionError(false);
@@ -91,7 +121,7 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
       const checkBlow = () => {
         if (!audioContextRef.current || audioContextRef.current.state === 'closed') return;
 
-        // Auto-resume AudioContext if browser suspended it
+        // Auto-resume if browser suspends AudioContext
         if (audioContextRef.current.state === 'suspended') {
           audioContextRef.current.resume().catch(() => {});
         }
@@ -99,15 +129,25 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
         analyser.getByteFrequencyData(freqArray);
         analyser.getByteTimeDomainData(timeArray);
 
-        // 1. Calculate low-frequency wind turbulence (bins 0 to 10: ~20Hz to ~850Hz)
-        let sumLow = 0;
-        const lowBins = 12;
+        // 1. Low-frequency wind turbulence (Bins 0 to 3: ~0Hz to ~260Hz)
+        // Air puffs produce immense energy in this specific sub-bass wind spectrum
+        let lowEnergySum = 0;
+        const lowBins = 4;
         for (let i = 0; i < lowBins; i++) {
-          sumLow += freqArray[i];
+          lowEnergySum += freqArray[i];
         }
-        const lowEnergy = sumLow / lowBins;
+        const lowEnergy = lowEnergySum / lowBins;
 
-        // 2. Calculate RMS amplitude for wind puff spikes
+        // 2. Mid/High-frequency energy (Bins 6 to 24: ~500Hz to ~2000Hz)
+        // Used to differentiate blowing from normal speaking or music
+        let midEnergySum = 0;
+        const midBins = 18;
+        for (let i = 6; i < 6 + midBins; i++) {
+          midEnergySum += freqArray[i];
+        }
+        const midEnergy = midEnergySum / midBins;
+
+        // 3. RMS Amplitude (Volume dynamics)
         let sumSquare = 0;
         for (let i = 0; i < timeArray.length; i++) {
           const norm = (timeArray[i] - 128) / 128;
@@ -115,29 +155,43 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
         }
         const rmsVolume = Math.sqrt(sumSquare / timeArray.length) * 100;
 
-        // Combined audio level indicator (0-100 scale with high air puff amplification)
-        const combinedLevel = Math.min(100, Math.round(Math.max(lowEnergy * 1.6, rmsVolume * 3.8)));
-        setMicVolume(combinedLevel);
+        // Overall visual meter level (0 to 100)
+        const currentVisualLevel = Math.min(100, Math.round(Math.max(lowEnergy * 1.4, rmsVolume * 3.5)));
 
-        // Calibration phase: measure initial background noise floor in first 10 frames
-        if (frameCount < 10) {
-          baselineEnergy = (baselineEnergy * frameCount + combinedLevel) / (frameCount + 1);
+        // Throttle React state updates to ~12 FPS to avoid overloading the JS render thread
+        const now = performance.now();
+        if (now - lastVolumeUpdateRef.current > 80 || Math.abs(currentVisualLevel - lastVolumeRef.current) > 15) {
+          lastVolumeUpdateRef.current = now;
+          lastVolumeRef.current = currentVisualLevel;
+          setMicVolume(currentVisualLevel);
+        }
+
+        // Adaptive noise floor calibration
+        if (frameCount < 12) {
+          rollingBaseline = (rollingBaseline * frameCount + lowEnergy) / (frameCount + 1);
           frameCount++;
         } else {
-          // Dynamic sensitive blow threshold: triggers on gentle air puff
-          const blowThreshold = Math.min(20, Math.max(10, baselineEnergy + 6));
+          // Slowly track ambient background music/room noise
+          rollingBaseline = rollingBaseline * 0.98 + lowEnergy * 0.02;
 
-          if (combinedLevel > blowThreshold && !isBlowingRef.current) {
-            blowCount++;
-            if (blowCount >= 1) {
-              // Trigger blow action!
+          // A genuine blow creates a sharp low-frequency surge or high low-to-mid ratio
+          const dynamicThreshold = Math.max(32, rollingBaseline + 18);
+          const isLowFreqSurge = lowEnergy > dynamicThreshold && rmsVolume > 10;
+          const isWindPuffRatio = lowEnergy > 26 && lowEnergy > midEnergy * 1.25 && rmsVolume > 8;
+
+          if ((isLowFreqSurge || isWindPuffRatio) && !isBlowingRef.current) {
+            blowStreak++;
+            // Require 3 consecutive frames (~50ms) to prevent false clicks/taps
+            if (blowStreak >= 3) {
               isBlowingRef.current = true;
-              onBlow();
+              if (onBlowRef.current) {
+                onBlowRef.current();
+              }
               stopDetection();
               return;
             }
           } else {
-            blowCount = 0;
+            blowStreak = Math.max(0, blowStreak - 1);
           }
         }
 
@@ -150,12 +204,14 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
       setPermissionError(true);
       setIsListening(false);
     }
-  }, [onBlow, stopDetection]);
+  }, [stopDetection]);
 
-  // Global click & touch listener to request mic and resume AudioContext if suspended
+  // Request mic and resume AudioContext on user interaction when enabled
   useEffect(() => {
-    const handleGesture = () => {
-      if (!isListening && enabled && !permissionError) {
+    if (!enabled) return;
+
+    const handleUserGesture = () => {
+      if (!isListening && !permissionError && enabled) {
         startDetection();
       }
       if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
@@ -163,16 +219,18 @@ export const useBlowDetection = (onBlow: () => void, enabled: boolean): BlowDete
       }
     };
 
-    window.addEventListener('click', handleGesture);
-    window.addEventListener('touchstart', handleGesture);
+    window.addEventListener('click', handleUserGesture, { passive: true });
+    window.addEventListener('touchstart', handleUserGesture, { passive: true });
     return () => {
-      window.removeEventListener('click', handleGesture);
-      window.removeEventListener('touchstart', handleGesture);
+      window.removeEventListener('click', handleUserGesture);
+      window.removeEventListener('touchstart', handleUserGesture);
     };
   }, [enabled, isListening, permissionError, startDetection]);
 
+  // Manage start/stop lifecycle based on `enabled` prop
   useEffect(() => {
     if (enabled) {
+      isBlowingRef.current = false;
       startDetection();
     } else {
       stopDetection();

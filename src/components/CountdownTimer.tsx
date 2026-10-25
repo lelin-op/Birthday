@@ -57,14 +57,14 @@ const CoolTimeCard: React.FC<TimeCardProps> = ({ value, label, maxUnit }) => {
 
         {/* 3D Digit Flip Motion with Neon Text Glow */}
         <div className="relative z-20 overflow-hidden py-1">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
               key={value}
-              initial={{ y: 22, opacity: 0, rotateX: -60, scale: 0.85 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
-              exit={{ y: -22, opacity: 0, rotateX: 60, scale: 0.85 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-              className="block text-3xl sm:text-5xl font-black font-sans tracking-tight text-white drop-shadow-[0_0_12px_rgba(244,63,94,0.7)] tabular-nums"
+              initial={{ y: 18, opacity: 0, scale: 0.9 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: -18, opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+              className="block text-3xl sm:text-5xl font-black font-sans tracking-tight text-white drop-shadow-[0_0_12px_rgba(244,63,94,0.7)] tabular-nums will-change-transform transform-gpu"
             >
               {value.toString().padStart(2, '0')}
             </motion.span>
