@@ -43,10 +43,22 @@ const checkIsAdminRoute = (): boolean => {
   return isAdmin;
 };
 
+const getInitialConfig = (): AppConfig => {
+  try {
+    const stored = localStorage.getItem('local_app_config');
+    if (stored) {
+      return { ...DEFAULT_CONFIG, ...JSON.parse(stored) };
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_CONFIG;
+};
+
 export default function App() {
   const [isAdminPage, setIsAdminPage] = useState<boolean>(checkIsAdminRoute);
   const [appState, setAppState] = useState<AppState>('COUNTDOWN');
-  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<AppConfig>(getInitialConfig);
   const [isMusicActive, setIsMusicActive] = useState(false);
 
   // Real-time Firestore sync across all devices

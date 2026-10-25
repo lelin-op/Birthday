@@ -7,11 +7,32 @@ interface YouTubeMusicPlayerProps {
   isPlaying: boolean;
 }
 
-const extractYouTubeId = (url: string): string | null => {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return match && match[2].length === 11 ? match[2] : null;
+export interface ParsedYouTube {
+  videoId: string | null;
+  playlistId: string | null;
+}
+
+const parseYouTubeUrl = (url: string): ParsedYouTube => {
+  if (!url || typeof url !== 'string') return { videoId: null, playlistId: null };
+
+  let videoId: string | null = null;
+  let playlistId: string | null = null;
+
+  try {
+    const listMatch = url.match(/[?&]list=([^#&?]+)/);
+    if (listMatch && listMatch[1]) {
+      playlistId = listMatch[1];
+    }
+
+    const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (videoMatch && videoMatch[1]) {
+      videoId = videoMatch[1];
+    }
+  } catch {
+    // ignore
+  }
+
+  return { videoId, playlistId };
 };
 
 export const YouTubeMusicPlayer: React.FC<YouTubeMusicPlayerProps> = ({
@@ -21,12 +42,11 @@ export const YouTubeMusicPlayer: React.FC<YouTubeMusicPlayerProps> = ({
   isPlaying,
 }) => {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const videoId = extractYouTubeId(youtubeUrl);
+  const { videoId, playlistId } = parseYouTubeUrl(youtubeUrl);
 
   useEffect(() => {
-    if (!iframeRef.current || !videoId) return;
+    if (!iframeRef.current || (!videoId && !playlistId)) return;
 
-    // Send volume message to YouTube iframe API if JS API is enabled
     try {
       const targetWindow = iframeRef.current.contentWindow;
       if (targetWindow) {
@@ -41,14 +61,21 @@ export const YouTubeMusicPlayer: React.FC<YouTubeMusicPlayerProps> = ({
         }
       }
     } catch {
-      // ignore iframe cross-origin postMessage errors
+      // ignore
     }
-  }, [volume, isPlaying, videoId]);
+  }, [volume, isPlaying, videoId, playlistId]);
 
-  if (!videoId || !isPlaying) return null;
+  if ((!videoId && !playlistId) || !isPlaying) return null;
 
-  const loopParam = loop ? `&loop=1&playlist=${videoId}` : '&loop=0';
-  const iframeSrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&controls=0&disablekb=1&fs=0&modestbranding=1${loopParam}`;
+  let iframeSrc = '';
+  if (videoId) {
+    const loopParam = loop ? `&loop=1&playlist=${videoId}` : '&loop=0';
+    const listParam = playlistId ? `&list=${playlistId}` : '';
+    iframeSrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&controls=0&disablekb=1&fs=0&modestbranding=1${loopParam}${listParam}`;
+  } else if (playlistId) {
+    const loopParam = loop ? '&loop=1' : '&loop=0';
+    iframeSrc = `https://www.youtube.com/embed?listType=playlist&list=${playlistId}&autoplay=1&enablejsapi=1&controls=0&disablekb=1&fs=0&modestbranding=1${loopParam}`;
+  }
 
   return (
     <div className="fixed -bottom-96 -left-96 w-1 h-1 overflow-hidden opacity-0 pointer-events-none z-0">

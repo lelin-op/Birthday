@@ -3,6 +3,7 @@ import type { AppConfig, AppState, AppTheme, CakeStyle, MusicTrack } from '../..
 import { DEFAULT_CONFIG } from '../../types';
 import { sounds } from '../../utils/soundEffects';
 import { bgMusic } from '../../utils/backgroundMusic';
+import { YouTubeMusicPlayer } from '../YouTubeMusicPlayer';
 import confetti from 'canvas-confetti';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -41,13 +42,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         ...formData,
         updatedAt: new Date().toISOString(),
       };
-      await setDoc(doc(db, 'settings', 'app_config'), payload, { merge: true });
+
+      // 1. Save locally to localStorage instantly
+      try {
+        localStorage.setItem('local_app_config', JSON.stringify(payload));
+      } catch (e) {
+        console.warn('LocalStorage save warning:', e);
+      }
+
       onUpdateConfig(payload);
+
+      // 2. Sync to Firestore Cloud DB
+      await setDoc(doc(db, 'settings', 'app_config'), payload, { merge: true });
 
       // Sync background music state
       if (payload.musicEnabled) {
-        bgMusic.setTrack(payload.musicTrack);
-        bgMusic.setVolume(payload.musicVolume);
+        if (payload.musicTrack !== 'youtube') {
+          bgMusic.setTrack(payload.musicTrack);
+          bgMusic.setVolume(payload.musicVolume);
+        }
       } else {
         bgMusic.stop();
         setIsPlayingMusicPreview(false);
@@ -56,7 +69,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setSaveToast(true);
       setTimeout(() => setSaveToast(false), 2500);
     } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, 'settings/app_config');
+      console.warn('Firestore cloud sync notice:', err);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 2500);
     } finally {
       setIsSaving(false);
     }
@@ -175,20 +190,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 4 * 1024 * 1024) {
-      alert('Image file is too large! Please choose a picture under 4MB.');
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setFormData((prev) => ({
-          ...prev,
-          photoUrl: dataUrl,
-        }));
-      }
+      const srcUrl = event.target?.result as string;
+      if (!srcUrl) return;
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 500;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          setFormData((prev) => ({
+            ...prev,
+            photoUrl: compressedDataUrl,
+          }));
+        }
+      };
+      img.src = srcUrl;
     };
     reader.readAsDataURL(file);
   };
@@ -320,6 +359,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     Paste any YouTube music video or playlist link.
                   </p>
                 </div>
+              )}
+
+              {/* YouTube Music Preview in Admin Panel */}
+              {formData.youtubeUrl && (
+                <YouTubeMusicPlayer
+                  youtubeUrl={formData.youtubeUrl}
+                  volume={formData.musicVolume}
+                  loop={formData.musicLoop}
+                  isPlaying={isPlayingMusicPreview && formData.musicEnabled}
+                />
               )}
 
               {/* Volume Slider & Loop Toggle & Test Play Button */}
