@@ -16,6 +16,8 @@ import { sounds } from './utils/soundEffects';
 import type { AppState, AppConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
 import confetti from 'canvas-confetti';
+import { db, testConnection, handleFirestoreError, OperationType } from './firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 const checkIsAdminRoute = (): boolean => {
   if (typeof window === 'undefined') return false;
@@ -43,18 +45,32 @@ const checkIsAdminRoute = (): boolean => {
 export default function App() {
   const [isAdminPage, setIsAdminPage] = useState<boolean>(checkIsAdminRoute);
   const [appState, setAppState] = useState<AppState>('COUNTDOWN');
+  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
 
-  const [config, setConfig] = useState<AppConfig>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('birthday_app_config');
-        if (saved) return JSON.parse(saved);
-      } catch {
-        // fallback
+  // Real-time Firestore sync across all devices
+  useEffect(() => {
+    testConnection();
+
+    const unsub = onSnapshot(
+      doc(db, 'settings', 'app_config'),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as AppConfig;
+          setConfig((prev) => ({ ...prev, ...data }));
+        } else {
+          // Initialize default cloud document if missing
+          setDoc(doc(db, 'settings', 'app_config'), DEFAULT_CONFIG).catch((err) => {
+            console.warn('Initial cloud config seed warning:', err);
+          });
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, 'settings/app_config');
       }
-    }
-    return DEFAULT_CONFIG;
-  });
+    );
+
+    return () => unsub();
+  }, []);
 
   // URL Navigation helper: updates URL in address bar and component state
   const navigateTo = (path: '/admin' | '/') => {

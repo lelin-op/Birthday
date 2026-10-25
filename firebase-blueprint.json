@@ -1,0 +1,37 @@
+{
+  "entities": {
+    "AppConfig": {
+      "title": "Application Configuration",
+      "description": "Global application settings synced across all devices",
+      "type": "object",
+      "properties": {
+        "recipientName": { "type": "string", "maxLength": 100 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "signatureName": { "type": "string", "maxLength": 100 },
+        "letterTitle": { "type": "string", "maxLength": 200 },
+        "letterBody": { "type": "string", "maxLength": 5000 },
+        "memories": { "type": "array" },
+        "targetDateISO": { "type": "string", "maxLength": 100 },
+        "photoUrl": { "type": "string", "maxLength": 500 },
+        "photoCaption": { "type": "string", "maxLength": 200 },
+        "theme": {
+          "type": "string",
+          "enum": ["roseGold", "blackPurplePink", "midnightStar", "lavenderDream", "candlelight"]
+        },
+        "cakeStyle": {
+          "type": "string",
+          "enum": ["butterflyPink", "royalPurpleTwoTier", "grandThreeTier"]
+        },
+        "soundEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["recipientName", "targetDateISO", "theme", "cakeStyle", "letterTitle", "letterBody", "soundEnabled"]
+    }
+  },
+  "firestore": {
+    "/settings/{settingId}": {
+      "schema": "AppConfig",
+      "description": "Public global app configuration settings document"
+    }
+  }
+}

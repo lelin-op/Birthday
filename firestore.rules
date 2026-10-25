@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidSettingId(id) {
+      return id is string && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidAppConfig(data) {
+      return data.recipientName is string && data.recipientName.size() <= 100 &&
+        data.targetDateISO is string && data.targetDateISO.size() <= 100 &&
+        data.theme in ['roseGold', 'blackPurplePink', 'midnightStar', 'lavenderDream', 'candlelight'] &&
+        data.cakeStyle in ['butterflyPink', 'royalPurpleTwoTier', 'grandThreeTier'] &&
+        data.letterTitle is string && data.letterTitle.size() <= 200 &&
+        data.letterBody is string && data.letterBody.size() <= 5000 &&
+        data.soundEnabled is bool;
+    }
+
+    match /settings/{settingId} {
+      allow read: if isValidSettingId(settingId);
+      allow create, update: if isValidSettingId(settingId) && settingId == 'app_config' && isValidAppConfig(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

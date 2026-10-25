@@ -3,6 +3,8 @@ import type { AppConfig, AppState, AppTheme, CakeStyle } from '../../types';
 import { DEFAULT_CONFIG } from '../../types';
 import { sounds } from '../../utils/soundEffects';
 import confetti from 'canvas-confetti';
+import { db, handleFirestoreError, OperationType } from '../../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 interface AdminPanelProps {
   config: AppConfig;
@@ -22,25 +24,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [formData, setFormData] = useState<AppConfig>({ ...config });
   const [newMemory, setNewMemory] = useState('');
   const [saveToast, setSaveToast] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    onUpdateConfig(formData);
+  const handleSave = async () => {
+    setIsSaving(true);
     try {
-      localStorage.setItem('birthday_app_config', JSON.stringify(formData));
-    } catch {
-      // ignore storage error
+      const payload: AppConfig & { updatedAt: string } = {
+        ...formData,
+        updatedAt: new Date().toISOString(),
+      };
+      await setDoc(doc(db, 'settings', 'app_config'), payload, { merge: true });
+      onUpdateConfig(payload);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 2500);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, 'settings/app_config');
+    } finally {
+      setIsSaving(false);
     }
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2500);
   };
 
-  const handleReset = () => {
-    setFormData(DEFAULT_CONFIG);
-    onUpdateConfig(DEFAULT_CONFIG);
+  const handleReset = async () => {
+    setIsSaving(true);
     try {
-      localStorage.removeItem('birthday_app_config');
-    } catch {
-      // ignore
+      await setDoc(doc(db, 'settings', 'app_config'), DEFAULT_CONFIG);
+      setFormData(DEFAULT_CONFIG);
+      onUpdateConfig(DEFAULT_CONFIG);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 2000);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, 'settings/app_config');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -120,20 +135,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
               <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Celebration Admin & Preview Controller
+                Celebration Admin & Real-Time Sync Controller
               </h1>
             </div>
             <p className="text-sm text-slate-500 mt-1">
-              Test all celebration stages, edit the love letter, select cake designs, and configure preview states.
+              Changes made here instantly sync to all users and devices visiting your birthday link.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors cursor-pointer"
+              disabled={isSaving}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-sm font-medium rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2"
             >
-              {saveToast ? '✓ Saved!' : 'Save Changes'}
+              {isSaving ? 'Saving to Cloud...' : saveToast ? '✓ Saved & Synced!' : 'Save & Sync Cloud'}
             </button>
             <button
               onClick={onClose}
@@ -362,7 +378,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </label>
               <input
                 type="datetime-local"
-                value={formData.targetDateISO.slice(0, 16)}
+                value={formData.targetDateISO ? formData.targetDateISO.slice(0, 16) : ''}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -426,6 +442,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         <div className="flex items-center justify-between pt-4 border-t border-slate-200">
           <button
             onClick={handleReset}
+            disabled={isSaving}
             className="text-xs text-rose-500 hover:text-rose-700 font-medium cursor-pointer"
           >
             Reset All to Defaults
@@ -434,9 +451,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={handleSave}
+              disabled={isSaving}
               className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors cursor-pointer"
             >
-              Save & Apply Changes
+              {isSaving ? 'Saving...' : 'Save & Sync Cloud'}
             </button>
           </div>
         </div>
