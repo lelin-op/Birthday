@@ -16,6 +16,34 @@ interface AdminPanelProps {
   onClose: () => void;
 }
 
+// Convert ISO timestamp to local HTML datetime-local format (YYYY-MM-DDTHH:mm)
+const toLocalInputValue = (isoStr?: string): string => {
+  if (!isoStr) return '';
+  const date = new Date(isoStr);
+  if (isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const YYYY = date.getFullYear();
+  const MM = pad(date.getMonth() + 1);
+  const DD = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const mm = pad(date.getMinutes());
+  return `${YYYY}-${MM}-${DD}T${hh}:${mm}`;
+};
+
+// Convert local HTML datetime-local value to ISO UTC string
+const fromLocalInputValue = (localVal: string): string => {
+  if (!localVal) return new Date().toISOString();
+  const [datePart, timePart] = localVal.split('T');
+  if (!datePart || !timePart) {
+    const d = new Date(localVal);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  }
+  const [y, m, d] = datePart.split('-').map(Number);
+  const [h, min] = timePart.split(':').map(Number);
+  const date = new Date(y, m - 1, d, h, min, 0, 0);
+  return date.toISOString();
+};
+
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   config,
   onUpdateConfig,
@@ -25,19 +53,31 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 }) => {
   const [formData, setFormData] = useState<AppConfig>(() => ({ ...config }));
   const [newMemory, setNewMemory] = useState('');
-  const [saveToast, setSaveToast] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<{
+    type: 'idle' | 'saving' | 'success' | 'error';
+    message: string;
+  }>({ type: 'idle', message: '' });
   const [isPlayingMusicPreview, setIsPlayingMusicPreview] = useState(bgMusic.getIsPlaying());
+  const isDirtyRef = React.useRef(false);
+
+  // Sync external cloud updates into form if user hasn't made unsaved edits
+  React.useEffect(() => {
+    if (!isDirtyRef.current) {
+      setFormData({ ...config });
+    }
+  }, [config]);
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveStatus({ type: 'saving', message: 'Saving and syncing to cloud database...' });
     try {
       const payload: AppConfig & { updatedAt: string } = {
         ...formData,
         updatedAt: new Date().toISOString(),
       };
 
-      // 1. Save locally to localStorage instantly
+      // 1. Save locally to localStorage
       try {
         localStorage.setItem('local_app_config', JSON.stringify(payload));
       } catch (e) {
@@ -48,6 +88,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       // 2. Sync to Firestore Cloud DB
       await setDoc(doc(db, 'settings', 'app_config'), payload, { merge: true });
+
+      // Mark clean
+      isDirtyRef.current = false;
 
       // Sync background music state
       if (payload.musicEnabled) {
@@ -60,12 +103,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         setIsPlayingMusicPreview(false);
       }
 
-      setSaveToast(true);
-      setTimeout(() => setSaveToast(false), 2500);
+      setSaveStatus({
+        type: 'success',
+        message: '✓ Saved & Synced! All devices will update in real time.',
+      });
+      setTimeout(() => {
+        setSaveStatus({ type: 'idle', message: '' });
+      }, 3500);
     } catch (err) {
-      console.warn('Firestore cloud sync notice:', err);
-      setSaveToast(true);
-      setTimeout(() => setSaveToast(false), 2500);
+      console.error('Firestore cloud sync notice:', err);
+      setSaveStatus({
+        type: 'error',
+        message: 'Saved to this device. Cloud sync error: ' + (err instanceof Error ? err.message : String(err)),
+      });
+      setTimeout(() => {
+        setSaveStatus({ type: 'idle', message: '' });
+      }, 5000);
     } finally {
       setIsSaving(false);
     }
@@ -75,10 +128,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setIsSaving(true);
     try {
       await setDoc(doc(db, 'settings', 'app_config'), DEFAULT_CONFIG);
+      isDirtyRef.current = false;
       setFormData(DEFAULT_CONFIG);
       onUpdateConfig(DEFAULT_CONFIG);
-      setSaveToast(true);
-      setTimeout(() => setSaveToast(false), 2000);
+      setSaveStatus({ type: 'success', message: '✓ Reset all settings to defaults.' });
+      setTimeout(() => setSaveStatus({ type: 'idle', message: '' }), 2500);
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, 'settings/app_config');
     } finally {
@@ -249,7 +303,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               disabled={isSaving}
               className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-sm font-medium rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2"
             >
-              {isSaving ? 'Saving to Cloud...' : saveToast ? '✓ Saved & Synced!' : 'Save & Sync Cloud'}
+              {isSaving
+                ? 'Saving to Cloud...'
+                : saveStatus.type === 'success'
+                ? '✓ Saved & Synced!'
+                : 'Save & Sync Cloud'}
             </button>
             <button
               onClick={onClose}
@@ -259,6 +317,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Live Save Status Banner */}
+        {saveStatus.message && (
+          <div
+            className={`p-3.5 rounded-xl border text-sm font-medium flex items-center justify-between transition-all ${
+              saveStatus.type === 'success'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : saveStatus.type === 'error'
+                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                : 'bg-blue-50 text-blue-800 border-blue-200'
+            }`}
+          >
+            <span>{saveStatus.message}</span>
+            {saveStatus.type === 'saving' && (
+              <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
+        )}
 
         {/* SECTION 1: BACKGROUND MUSIC CONTROLLER */}
         <div className="bg-gradient-to-r from-rose-50 via-purple-50 to-pink-50 rounded-xl border border-rose-200 p-6 shadow-sm space-y-5">
@@ -720,32 +796,108 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                Target Birthday Date & Time (ISO)
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                <span>Target Birthday Date & Time</span>
+                <span className="text-[11px] text-rose-600 font-normal">Local device time</span>
               </label>
               <input
                 type="datetime-local"
-                value={
-                  formData.targetDateISO && !isNaN(new Date(formData.targetDateISO).getTime())
-                    ? new Date(formData.targetDateISO).toISOString().slice(0, 16)
-                    : ''
-                }
+                value={toLocalInputValue(formData.targetDateISO)}
                 onChange={(e) => {
                   const val = e.target.value;
                   if (!val) return;
-                  const parsed = new Date(val);
-                  if (!isNaN(parsed.getTime())) {
-                    setFormData({
-                      ...formData,
-                      targetDateISO: parsed.toISOString(),
-                    });
-                  }
+                  const iso = fromLocalInputValue(val);
+                  isDirtyRef.current = true;
+                  setFormData((prev) => ({
+                    ...prev,
+                    targetDateISO: iso,
+                  }));
                 }}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 font-medium text-slate-800"
               />
-              <p className="text-[11px] text-slate-400 mt-1">
-                Set to a past time to test automatic trigger into celebration!
-              </p>
+
+              {/* Formatted Preview Banner */}
+              <div className="mt-2 p-2.5 bg-rose-50/80 border border-rose-200/80 rounded-lg text-xs space-y-1">
+                <div className="flex items-center justify-between font-medium text-slate-800">
+                  <span>Selected Target:</span>
+                  <span className="text-rose-700 font-bold">
+                    {formData.targetDateISO && !isNaN(new Date(formData.targetDateISO).getTime())
+                      ? new Date(formData.targetDateISO).toLocaleString(undefined, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })
+                      : 'None set'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">Trigger Status:</span>
+                  {(() => {
+                    const targetMs = new Date(formData.targetDateISO).getTime();
+                    const hasPassed = !isNaN(targetMs) && targetMs <= new Date().getTime();
+                    return (
+                      <span className={`font-semibold ${hasPassed ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {hasPassed
+                          ? '⚡ Reached (Triggers Cake Stage immediately)'
+                          : '⏳ Counting down...'}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 mr-1">Presets:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const past = new Date(Date.now() - 60000).toISOString();
+                    isDirtyRef.current = true;
+                    setFormData((prev) => ({ ...prev, targetDateISO: past }));
+                  }}
+                  className="px-2 py-1 text-[11px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md cursor-pointer transition-colors"
+                >
+                  ⚡ Trigger Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const plus10 = new Date(Date.now() + 10 * 60000).toISOString();
+                    isDirtyRef.current = true;
+                    setFormData((prev) => ({ ...prev, targetDateISO: plus10 }));
+                  }}
+                  className="px-2 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-md cursor-pointer transition-colors"
+                >
+                  +10 Mins
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const plus1h = new Date(Date.now() + 60 * 60000).toISOString();
+                    isDirtyRef.current = true;
+                    setFormData((prev) => ({ ...prev, targetDateISO: plus1h }));
+                  }}
+                  className="px-2 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-md cursor-pointer transition-colors"
+                >
+                  +1 Hour
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const tomorrow = new Date(Date.now() + 24 * 3600000);
+                    tomorrow.setHours(0, 0, 0, 0);
+                    isDirtyRef.current = true;
+                    setFormData((prev) => ({ ...prev, targetDateISO: tomorrow.toISOString() }));
+                  }}
+                  className="px-2 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-md cursor-pointer transition-colors"
+                >
+                  Tomorrow
+                </button>
+              </div>
             </div>
 
             <div>
@@ -808,9 +960,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2"
             >
-              {isSaving ? 'Saving...' : 'Save & Sync Cloud'}
+              {isSaving
+                ? 'Saving to Cloud...'
+                : saveStatus.type === 'success'
+                ? '✓ Saved & Synced!'
+                : 'Save & Sync Cloud'}
             </button>
           </div>
         </div>

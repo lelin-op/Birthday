@@ -23,7 +23,7 @@ service cloud.firestore {
         data.musicTrack in ['lofiBirthday', 'romanticPiano', 'acousticAura', 'youtube'] &&
         data.memories is list &&
         (!('senderName' in data) || (data.senderName is string && data.senderName.size() <= 200)) &&
-        (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500000)) &&
+        (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 800000)) &&
         (!('photoCaption' in data) || (data.photoCaption is string && data.photoCaption.size() <= 300)) &&
         (!('youtubeUrl' in data) || (data.youtubeUrl is string && data.youtubeUrl.size() <= 2000)) &&
         (!('musicLoop' in data) || (data.musicLoop is bool)) &&
