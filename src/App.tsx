@@ -116,7 +116,7 @@ export default function App() {
   };
 
   // Microphone blow detection
-  const { permissionError } = useBlowDetection(() => {
+  const { permissionError, isListening, micVolume, enableMic } = useBlowDetection(() => {
     if (appState === 'CAKE_BLOW') {
       triggerCandleExtinguished();
     }
@@ -249,6 +249,9 @@ export default function App() {
                 isBlown={false}
                 onBlow={triggerCandleExtinguished}
                 permissionError={permissionError}
+                isListening={isListening}
+                micVolume={micVolume}
+                enableMic={enableMic}
                 soundEnabled={config.soundEnabled}
                 recipientName={config.recipientName}
                 cakeStyle={config.cakeStyle}
